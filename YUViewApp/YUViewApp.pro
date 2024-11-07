@@ -55,6 +55,17 @@ contains(QT_ARCH, x86_32|i386) {
 macx {
     ICON = images/YUView.icns
     SVNN = $$system("git describe --tags")
+
+    isEmpty(PREFIX) {
+        PREFIX = /
+    }
+    isEmpty(BIINDIR) {
+        BINDIR = Applications
+    }
+
+    target.path = $$PREFIX/$$BINDIR/
+
+    INSTALLS += target
 }
 
 linux {
