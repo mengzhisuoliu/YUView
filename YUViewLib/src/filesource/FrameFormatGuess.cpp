@@ -133,7 +133,7 @@ std::optional<Size> guessFrameSizeFromAcronymResolutionIndicators(const std::str
 std::optional<int> guessFPSFromFPSOrHzIndicators(const std::string &name)
 {
   std::smatch      frameSizeMatch;
-  const std::regex strExpr("([0-9]+)(?>FPS|fps|HZ|Hz)");
+  const std::regex strExpr("([0-9]+)(FPS|fps|HZ|Hz)");
   if (std::regex_search(name, frameSizeMatch, strExpr))
     return toUnsigned(frameSizeMatch[1].str());
   return {};
@@ -142,7 +142,7 @@ std::optional<int> guessFPSFromFPSOrHzIndicators(const std::string &name)
 std::optional<unsigned> guessBitDepthFromName(const std::string &name)
 {
   const auto REGEXP_LIST = {
-      "(8|9|10|12|16)-?(?>BIT|Bit|bit)",      // E.g. 10bit, 10BIT, 10-bit, 10-BIT
+      "(8|9|10|12|16)-?(BIT|Bit|bit)",      // E.g. 10bit, 10BIT, 10-bit, 10-BIT
       "(?:_|\\.|-)(8|9|10|12|16)b(?:_|\\.|-)" // E.g. _16b_ .8b. -12b-
   };
 
