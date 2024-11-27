@@ -70,6 +70,13 @@ template <typename T> std::string _formatArgument(T arg)
     return std::to_string(arg);
 }
 
+template <typename T> std::string _formatArgument(std::optional<T> arg)
+{
+  if (arg)
+    return _formatArgument(*arg);
+  return "NA";
+}
+
 template <typename T, std::size_t N> std::string _formatArgument(std::array<T, N> values)
 {
   std::ostringstream stream;

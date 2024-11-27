@@ -34,16 +34,48 @@
 
 #include <common/Functions.h>
 
-#include <QDir>
 #include <regex>
 #include <string>
 
 using namespace std::string_literals;
+using filesource::frameFormatGuess::FileInfoForGuess;
+using filesource::frameFormatGuess::GuessedFrameFormat;
 
 namespace video::rgb
 {
 
-std::optional<PixelFormatRGB> findPixelFormatIndicatorInName(const std::string &fileName)
+DataLayout findDataLayoutInName(const std::string &fileName)
+{
+  std::string matcher = "(?:_|\\.|-)(packed|planar)(?:_|\\.|-)";
+
+  std::smatch sm;
+  std::regex  strExpr(matcher);
+  if (std::regex_search(fileName, sm, strExpr))
+  {
+    auto match = sm.str(0).substr(1, 6);
+    return match == "planar" ? DataLayout::Planar : DataLayout::Packed;
+  }
+
+  return DataLayout::Packed;
+}
+
+bool doesPixelFormatMatchFileSize(const PixelFormatRGB         &pixelFormat,
+                                  const Size                   &frameSize,
+                                  const std::optional<int64_t> &fileSize)
+{
+  if (!fileSize)
+    return true;
+
+  const auto bytesPerFrame = pixelFormat.bytesPerFrame(frameSize);
+  if (bytesPerFrame <= 0)
+    return false;
+
+  const auto isFileSizeAMultipleOfFrameSize = (*fileSize % bytesPerFrame) == 0;
+  return isFileSizeAMultipleOfFrameSize;
+}
+
+std::optional<PixelFormatRGB> checkForPixelFormatIndicatorInName(
+    const std::string &filename, const Size &frameSize, const std::optional<std::int64_t> &fileSize)
 {
   std::string matcher = "(?:_|\\.|-)(";
 
@@ -85,86 +117,84 @@ std::optional<PixelFormatRGB> findPixelFormatIndicatorInName(const std::string &
 
   std::smatch sm;
   std::regex  strExpr(matcher);
-  if (!std::regex_search(fileName, sm, strExpr))
+  if (!std::regex_search(filename, sm, strExpr))
     return {};
 
   auto match     = sm.str(0);
   auto matchName = match.substr(1, match.size() - 2);
-  return stringToMatchingFormat[matchName];
+
+  auto format = stringToMatchingFormat[matchName];
+  if (doesPixelFormatMatchFileSize(format, frameSize, fileSize))
+  {
+    const auto dataLayout = findDataLayoutInName(filename);
+    format.setDataLayout(dataLayout);
+    return format;
+  }
+
+  return {};
 }
 
-std::optional<PixelFormatRGB> findPixelFormatFromFileExtension(const std::string &ext)
+std::optional<PixelFormatRGB> checkForPixelFormatIndicatorInFileExtension(
+    const std::string &filename, const Size &frameSize, const std::optional<std::int64_t> &fileSize)
 {
+  const auto fileExtension = std::filesystem::path(filename).extension();
+
   for (const auto &[channelOrder, name] : ChannelOrderMapper)
   {
-    if (functions::toLower(ext) == functions::toLower(name))
-      return PixelFormatRGB(8, DataLayout::Packed, channelOrder);
+    if (fileExtension == functions::toLower(name))
+    {
+      auto format = PixelFormatRGB(8, DataLayout::Packed, channelOrder);
+      if (doesPixelFormatMatchFileSize(format, frameSize, fileSize))
+      {
+        const auto dataLayout = findDataLayoutInName(filename);
+        format.setDataLayout(dataLayout);
+        return format;
+      }
+    }
   }
   return {};
 }
 
-DataLayout findDataLayoutInName(const std::string &fileName)
+std::optional<PixelFormatRGB> checkSpecificFileExtensions(
+    const std::string &filename, const Size &frameSize, const std::optional<std::int64_t> &fileSize)
 {
-  std::string matcher = "(?:_|\\.|-)(packed|planar)(?:_|\\.|-)";
-
-  std::smatch sm;
-  std::regex  strExpr(matcher);
-  if (std::regex_search(fileName, sm, strExpr))
-  {
-    auto match = sm.str(0).substr(1, 6);
-    return match == "planar" ? DataLayout::Planar : DataLayout::Packed;
-  }
-
-  return DataLayout::Packed;
-}
-
-PixelFormatRGB
-guessFormatFromSizeAndName(const QFileInfo &fileInfo, const Size frameSize, const int64_t fileSize)
-{
-  // We are going to check two strings (one after the other) for indicators on the YUV format.
-  // 1: The file name, 2: The folder name that the file is contained in.
-
-  // The full name of the file
-  auto fileName = fileInfo.baseName().toLower().toStdString();
-  if (fileName.empty())
-    return {};
-  fileName += ".";
-
-  const auto dirName       = fileInfo.absoluteDir().dirName().toLower().toStdString();
-  const auto fileExtension = fileInfo.suffix().toLower().toStdString();
-
-  auto isFileSizeMultipleOfFrameSizeInBytes = [&fileSize, &frameSize](const PixelFormatRGB &format)
-  {
-    const auto bpf = format.bytesPerFrame(frameSize);
-    return bpf > 0 && (fileSize % bpf) == 0;
-  };
+  const auto fileExtension = std::filesystem::path(filename).extension();
 
   if (fileExtension == "cmyk")
   {
     const auto format = PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::RGB, AlphaMode::Last);
-    if (isFileSizeMultipleOfFrameSizeInBytes(format))
+    if (doesPixelFormatMatchFileSize(format, frameSize, fileSize))
       return format;
   }
 
-  for (const auto &name : {fileName, dirName})
-  {
-    for (auto format :
-         {findPixelFormatIndicatorInName(name), findPixelFormatFromFileExtension(fileExtension)})
-    {
-      if (format)
-      {
-        if (isFileSizeMultipleOfFrameSizeInBytes(*format))
-        {
-          auto dataLayout = findDataLayoutInName(name);
-          format->setDataLayout(dataLayout);
-          return *format;
-        }
-      }
-    }
-  }
+  return {};
+}
 
-  // Guessing failed
-  return PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::RGB);
+PixelFormatRGB guessPixelFormatFromSizeAndName(const GuessedFrameFormat &guessedFrameFormat,
+                                               const FileInfoForGuess   &fileInfo)
+{
+  if (!guessedFrameFormat.frameSize || fileInfo.filename.empty())
+    return {};
+
+  const auto filename  = functions::toLower(fileInfo.filename);
+  const auto frameSize = *guessedFrameFormat.frameSize;
+  const auto fileSize  = fileInfo.fileSize;
+
+  if (const auto pixelFormat = checkSpecificFileExtensions(filename, frameSize, fileSize))
+    return *pixelFormat;
+
+  if (const auto pixelFormat = checkForPixelFormatIndicatorInName(filename, frameSize, fileSize))
+    return *pixelFormat;
+
+  if (const auto pixelFormat =
+          checkForPixelFormatIndicatorInFileExtension(filename, frameSize, fileSize))
+    return *pixelFormat;
+
+  if (const auto pixelFormat = checkForPixelFormatIndicatorInName(
+          functions::toLower(fileInfo.parentFolderName), frameSize, fileSize))
+    return *pixelFormat;
+
+  return {};
 }
 
 } // namespace video::rgb

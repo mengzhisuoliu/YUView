@@ -184,8 +184,9 @@ QStringPairList videoHandlerDifference::getPixelValues(const QPoint &pixelPos,
   return inputVideo[0]->getPixelValues(pixelPos, frameIdx, inputVideo[1], frameIdx1);
 }
 
-void videoHandlerDifference::setFormatFromSizeAndName(
-    const Size, int, DataLayout, int64_t, const QFileInfo &)
+void videoHandlerDifference::guessAndSetPixelFormat(
+    const filesource::frameFormatGuess::GuessedFrameFormat &frameFormat,
+    const filesource::frameFormatGuess::FileInfoForGuess   &fileInfo)
 {
   assert(false);
 }

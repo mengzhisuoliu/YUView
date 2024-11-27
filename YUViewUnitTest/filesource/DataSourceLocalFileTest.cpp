@@ -56,7 +56,7 @@ TEST(DataSourceLocalFileTest, OpenFileThatDoesNotExist)
 
   ByteVector dummyVector;
   EXPECT_EQ(file.read(dummyVector, 378), 0);
-  EXPECT_EQ(dummyVector.size(), 0);
+  EXPECT_EQ(dummyVector.size(), 0u);
 }
 
 TEST(DataSourceLocalFileTest, OpenFileThatExists_TestRetrievalOfFileInfo)

@@ -76,11 +76,9 @@ public:
   void setInterpolation(Interpolation interpolation);
   void setCutAndSample(indexRange startEnd, int sampling);
 
-  virtual void setFormatFromSizeAndName(const Size       frameSize,
-                                        int              bitDepth,
-                                        DataLayout       dataLayout,
-                                        int64_t          fileSize,
-                                        const QFileInfo &fileInfo) override;
+  void
+  guessAndSetPixelFormat(const filesource::frameFormatGuess::GuessedFrameFormat &frameFormat,
+                         const filesource::frameFormatGuess::FileInfoForGuess   &fileInfo) override;
 
   QList<InfoItem> resampleInfoList;
 

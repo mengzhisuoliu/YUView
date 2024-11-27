@@ -32,17 +32,36 @@
 
 #pragma once
 
+#include <common/Testing.h>
 #include <filesource/FrameFormatGuess.h>
 
-#include "PixelFormatRGB.h"
-
-namespace video::rgb
+namespace filesource::frameFormatGuess::test
 {
 
-// If you know the frame size of the video, the file size (and optionally the bit depth) we can
-// guess the remaining values. The rate value is set if a matching format could be found.
-PixelFormatRGB guessPixelFormatFromSizeAndName(
-    const filesource::frameFormatGuess::GuessedFrameFormat &guessedFrameFormat,
-    const filesource::frameFormatGuess::FileInfoForGuess   &fileInfo);
+static std::string
+formatFileInfoForGuessAndGuessedFrameFormat(const FileInfoForGuess   &fileInfoForGuess,
+                                            const GuessedFrameFormat &guessedFrameFormat)
+{
+  auto name = yuviewTest::formatTestName("TestName",
+                                         fileInfoForGuess.filename,
+                                         "ParentPath",
+                                         fileInfoForGuess.parentFolderName,
+                                         "fileSize",
+                                         fileInfoForGuess.fileSize,
+                                         "Size",
+                                         guessedFrameFormat.frameSize,
+                                         "fps",
+                                         guessedFrameFormat.frameRate,
+                                         "BitDepth",
+                                         guessedFrameFormat.bitDepth);
 
-} // namespace video::rgb
+  name += "_DataLayout_";
+  if (guessedFrameFormat.dataLayout)
+    name += video::DataLayoutMapper.getName(*guessedFrameFormat.dataLayout);
+  else
+    name += "NA";
+
+  return name;
+}
+
+} // namespace filesource::frameFormatGuess::test

@@ -33,15 +33,15 @@
 #include <common/Testing.h>
 
 #include <common/Formatting.h>
-#include <filesource/GuessFormatFromName.h>
+#include <filesource/FrameFormatGuess.h>
 
-namespace
+#include "FormatGuessingParameters.h"
+
+namespace filesource::frameFormatGuess::test
 {
 
-using ExpectedFileFormat = FileFormat;
-using FileName           = QString;
-
-using TestParam = std::pair<FileName, ExpectedFileFormat>;
+using ExpectedGuessResult = GuessedFrameFormat;
+using TestParam           = std::pair<FileInfoForGuess, ExpectedGuessResult>;
 
 class GuessFormatFromFilenameTest : public TestWithParam<TestParam>
 {
@@ -49,26 +49,15 @@ class GuessFormatFromFilenameTest : public TestWithParam<TestParam>
 
 std::string getTestName(const testing::TestParamInfo<TestParam> &testParam)
 {
-  const auto [filename, expectedFormat] = testParam.param;
-
-  return yuviewTest::formatTestName("TestName",
-                                    filename.toStdString(),
-                                    "Size",
-                                    expectedFormat.frameSize,
-                                    "fps",
-                                    expectedFormat.frameRate,
-                                    "BitDepth",
-                                    expectedFormat.bitDepth,
-                                    "Packed",
-                                    expectedFormat.packed);
+  const auto [fileInfoForGuess, expectedFormat] = testParam.param;
+  return formatFileInfoForGuessAndGuessedFrameFormat(fileInfoForGuess, expectedFormat);
 }
 
 TEST_P(GuessFormatFromFilenameTest, TestFormatFromFilename)
 {
-  const auto [filename, expectedFormat] = GetParam();
+  const auto [fileInfoForGuess, expectedFormat] = GetParam();
 
-  QFileInfo  fileInfo(filename);
-  const auto actualFormat = guessFormatFromFilename(fileInfo);
+  const auto actualFormat = guessFrameFormat(fileInfoForGuess);
 
   EXPECT_EQ(actualFormat, expectedFormat);
 }
@@ -77,111 +66,124 @@ INSTANTIATE_TEST_SUITE_P(
     FilesourceTest,
     GuessFormatFromFilenameTest,
     Values(
-        std::make_pair("something_1920x1080.yuv",
-                       ExpectedFileFormat({Size(1920, 1080), -1, 0, false})),
-        std::make_pair("something_295x289.yuv", ExpectedFileFormat({Size(295, 289), -1, 0, false})),
-        std::make_pair("something_295234x289234.yuv",
-                       ExpectedFileFormat({Size(295234, 289234), -1, 0, false})),
-        std::make_pair("something_1920X1080.yuv",
-                       ExpectedFileFormat({Size(1920, 1080), -1, 0, false})),
-        std::make_pair("something_1920*1080.yuv",
-                       ExpectedFileFormat({Size(1920, 1080), -1, 0, false})),
-        std::make_pair("something_1920x1080_something.yuv",
-                       ExpectedFileFormat({Size(1920, 1080), -1, 0, false})),
-        std::make_pair("something_1920_1080.yuv", ExpectedFileFormat({Size(0, 0), -1, 0, false})),
-        std::make_pair("something_19201080.yuv", ExpectedFileFormat({Size(0, 0), -1, 0, false})),
-        std::make_pair("something_1280-720.yuv", ExpectedFileFormat({Size(0, 0), -1, 0, false})),
-        std::make_pair("something_1920-1080_something.yuv",
-                       ExpectedFileFormat({Size(0, 0), -1, 0, false})),
+        std::make_pair(FileInfoForGuess({"something_1920x1080.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), {}, {}, {}})),
+        std::make_pair(FileInfoForGuess({"something_295x289.yuv", "", {}}),
+                       ExpectedGuessResult({Size(295, 289), {}, {}, {}})),
+        std::make_pair(FileInfoForGuess({"something_295234x289234.yuv", "", {}}),
+                       ExpectedGuessResult({Size(295234, 289234), {}, {}, {}})),
+        std::make_pair(FileInfoForGuess({"something_1920X1080.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), {}, {}, {}})),
+        std::make_pair(FileInfoForGuess({"something_1920*1080.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), {}, {}, {}})),
+        std::make_pair(FileInfoForGuess({"something_1920x1080_something.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), {}, {}, {}})),
+        std::make_pair(FileInfoForGuess({"something_1920_1080.yuv", "", {}}),
+                       ExpectedGuessResult({Size(0, 0), {}, {}, {}})),
+        std::make_pair(FileInfoForGuess({"something_19201080.yuv", "", {}}),
+                       ExpectedGuessResult({Size(0, 0), {}, {}, {}})),
+        std::make_pair(FileInfoForGuess({"something_1280-720.yuv", "", {}}),
+                       ExpectedGuessResult({Size(0, 0), {}, {}, {}})),
+        std::make_pair(FileInfoForGuess({"something_1920-1080_something.yuv", "", {}}),
+                       ExpectedGuessResult({Size(0, 0), {}, {}, {}})),
 
-        std::make_pair("something_1920x1080_25.yuv",
-                       ExpectedFileFormat({Size(1920, 1080), 25, 0, false})),
-        std::make_pair("something_1920x1080_999.yuv",
-                       ExpectedFileFormat({Size(1920, 1080), 999, 0, false})),
-        std::make_pair("something_1920x1080_60Hz.yuv",
-                       ExpectedFileFormat({Size(1920, 1080), 60, 0, false})),
-        std::make_pair("something_1920x1080_999_something.yuv",
-                       ExpectedFileFormat({Size(1920, 1080), 999, 0, false})),
-        std::make_pair("something_1920x1080_60hz.yuv",
-                       ExpectedFileFormat({Size(1920, 1080), 60, 0, false})),
-        std::make_pair("something_1920x1080_60HZ.yuv",
-                       ExpectedFileFormat({Size(1920, 1080), 60, 0, false})),
-        std::make_pair("something_1920x1080_60fps.yuv",
-                       ExpectedFileFormat({Size(1920, 1080), 60, 0, false})),
-        std::make_pair("something_1920x1080_60FPS.yuv",
-                       ExpectedFileFormat({Size(1920, 1080), 60, 0, false})),
+        std::make_pair(FileInfoForGuess({"something_1920x1080_25.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), 25, {}, {}})),
+        std::make_pair(FileInfoForGuess({"something_1920x1080_999.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), 999, {}, {}})),
+        std::make_pair(FileInfoForGuess({"something_1920x1080_60Hz.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), 60, {}, {}})),
+        std::make_pair(FileInfoForGuess({"something_1920x1080_999_something.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), 999, {}, {}})),
+        std::make_pair(FileInfoForGuess({"something_1920x1080_60hz.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), 60, {}, {}})),
+        std::make_pair(FileInfoForGuess({"something_1920x1080_60HZ.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), 60, {}, {}})),
+        std::make_pair(FileInfoForGuess({"something_1920x1080_60fps.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), 60, {}, {}})),
+        std::make_pair(FileInfoForGuess({"something_1920x1080_60FPS.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), 60, {}, {}})),
 
-        std::make_pair("something_1920x1080_25_8.yuv",
-                       ExpectedFileFormat({Size(1920, 1080), 25, 8, false})),
-        std::make_pair("something_1920x1080_25_12.yuv",
-                       ExpectedFileFormat({Size(1920, 1080), 25, 12, false})),
-        std::make_pair("something_1920x1080_25_8b.yuv",
-                       ExpectedFileFormat({Size(1920, 1080), 25, 8, false})),
-        std::make_pair("something_1920x1080_25_8b_something.yuv",
-                       ExpectedFileFormat({Size(1920, 1080), 25, 8, false})),
+        std::make_pair(FileInfoForGuess({"something_1920x1080_25_8.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), 25, 8, {}})),
+        std::make_pair(FileInfoForGuess({"something_1920x1080_25_12.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), 25, 12, {}})),
+        std::make_pair(FileInfoForGuess({"something_1920x1080_25_8b.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), 25, 8, {}})),
+        std::make_pair(FileInfoForGuess({"something_1920x1080_25_8b_something.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), 25, 8, {}})),
 
-        std::make_pair("something1080p.yuv", ExpectedFileFormat({Size(1920, 1080), -1, 0, false})),
-        std::make_pair("something1080pSomething.yuv",
-                       ExpectedFileFormat({Size(1920, 1080), -1, 0, false})),
-        std::make_pair("something1080p33.yuv",
-                       ExpectedFileFormat({Size(1920, 1080), 33, 0, false})),
-        std::make_pair("something1080p33Something.yuv",
-                       ExpectedFileFormat({Size(1920, 1080), 33, 0, false})),
-        std::make_pair("something720p.yuv", ExpectedFileFormat({Size(1280, 720), -1, 0, false})),
-        std::make_pair("something720pSomething.yuv",
-                       ExpectedFileFormat({Size(1280, 720), -1, 0, false})),
-        std::make_pair("something720p44.yuv", ExpectedFileFormat({Size(1280, 720), 44, 0, false})),
-        std::make_pair("something720p44Something.yuv",
-                       ExpectedFileFormat({Size(1280, 720), 44, 0, false})),
+        std::make_pair(FileInfoForGuess({"something1080p.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), {}, {}, {}})),
+        std::make_pair(FileInfoForGuess({"something1080pSomething.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), {}, {}, {}})),
+        std::make_pair(FileInfoForGuess({"something1080p33.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), 33, {}, {}})),
+        std::make_pair(FileInfoForGuess({"something1080p33Something.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), 33, {}, {}})),
+        std::make_pair(FileInfoForGuess({"something720p.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1280, 720), {}, {}, {}})),
+        std::make_pair(FileInfoForGuess({"something720pSomething.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1280, 720), {}, {}, {}})),
+        std::make_pair(FileInfoForGuess({"something720p44.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1280, 720), 44, {}, {}})),
+        std::make_pair(FileInfoForGuess({"something720p44Something.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1280, 720), 44, {}, {}})),
 
-        std::make_pair("something_cif.yuv", ExpectedFileFormat({Size(352, 288), -1, 0, false})),
-        std::make_pair("something_cifSomething.yuv",
-                       ExpectedFileFormat({Size(352, 288), -1, 0, false})),
-        std::make_pair("something_qcif.yuv", ExpectedFileFormat({Size(176, 144), -1, 0, false})),
-        std::make_pair("something_qcifSomething.yuv",
-                       ExpectedFileFormat({Size(176, 144), -1, 0, false})),
-        std::make_pair("something_4cif.yuv", ExpectedFileFormat({Size(704, 576), -1, 0, false})),
-        std::make_pair("something_4cifSomething.yuv",
-                       ExpectedFileFormat({Size(704, 576), -1, 0, false})),
-        std::make_pair("somethingUHDSomething.yuv",
-                       ExpectedFileFormat({Size(3840, 2160), -1, 0, false})),
-        std::make_pair("somethingHDSomething.yuv",
-                       ExpectedFileFormat({Size(1920, 1080), -1, 0, false})),
+        std::make_pair(FileInfoForGuess({"something_cif.yuv", "", {}}),
+                       ExpectedGuessResult({Size(352, 288), {}, {}, {}})),
+        std::make_pair(FileInfoForGuess({"something_cifSomething.yuv", "", {}}),
+                       ExpectedGuessResult({Size(352, 288), {}, {}, {}})),
+        std::make_pair(FileInfoForGuess({"something_qcif.yuv", "", {}}),
+                       ExpectedGuessResult({Size(176, 144), {}, {}, {}})),
+        std::make_pair(FileInfoForGuess({"something_qcifSomething.yuv", "", {}}),
+                       ExpectedGuessResult({Size(176, 144), {}, {}, {}})),
+        std::make_pair(FileInfoForGuess({"something_4cif.yuv", "", {}}),
+                       ExpectedGuessResult({Size(704, 576), {}, {}, {}})),
+        std::make_pair(FileInfoForGuess({"something_4cifSomething.yuv", "", {}}),
+                       ExpectedGuessResult({Size(704, 576), {}, {}, {}})),
+        std::make_pair(FileInfoForGuess({"somethingUHDSomething.yuv", "", {}}),
+                       ExpectedGuessResult({Size(3840, 2160), {}, {}, {}})),
+        std::make_pair(FileInfoForGuess({"somethingHDSomething.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), {}, {}, {}})),
 
-        std::make_pair("something_1920x1080_8Bit.yuv",
-                       ExpectedFileFormat({Size(1920, 1080), -1, 8, false})),
-        std::make_pair("something_1920x1080_10Bit.yuv",
-                       ExpectedFileFormat({Size(1920, 1080), -1, 10, false})),
-        std::make_pair("something_1920x1080_12Bit.yuv",
-                       ExpectedFileFormat({Size(1920, 1080), -1, 12, false})),
-        std::make_pair("something_1920x1080_16Bit.yuv",
-                       ExpectedFileFormat({Size(1920, 1080), -1, 16, false})),
-        std::make_pair("something_1920x1080_8bit.yuv",
-                       ExpectedFileFormat({Size(1920, 1080), -1, 8, false})),
-        std::make_pair("something_1920x1080_8BIT.yuv",
-                       ExpectedFileFormat({Size(1920, 1080), -1, 8, false})),
-        std::make_pair("something_1920x1080_8-Bit.yuv",
-                       ExpectedFileFormat({Size(1920, 1080), -1, 8, false})),
-        std::make_pair("something_1920x1080_8-BIT.yuv",
-                       ExpectedFileFormat({Size(1920, 1080), -1, 8, false})),
+        std::make_pair(FileInfoForGuess({"something_1920x1080_8Bit.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), {}, 8, {}})),
+        std::make_pair(FileInfoForGuess({"something_1920x1080_10Bit.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), {}, 10, {}})),
+        std::make_pair(FileInfoForGuess({"something_1920x1080_12Bit.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), {}, 12, {}})),
+        std::make_pair(FileInfoForGuess({"something_1920x1080_16Bit.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), {}, 16, {}})),
+        std::make_pair(FileInfoForGuess({"something_1920x1080_8bit.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), {}, 8, {}})),
+        std::make_pair(FileInfoForGuess({"something_1920x1080_8BIT.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), {}, 8, {}})),
+        std::make_pair(FileInfoForGuess({"something_1920x1080_8-Bit.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), {}, 8, {}})),
+        std::make_pair(FileInfoForGuess({"something_1920x1080_8-BIT.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), {}, 8, {}})),
 
-        std::make_pair("something_1920x1080_packed.yuv",
-                       ExpectedFileFormat({Size(1920, 1080), -1, 0, true})),
-        std::make_pair("something_1920x1080_packed-something.yuv",
-                       ExpectedFileFormat({Size(1920, 1080), -1, 0, true})),
-        std::make_pair("something_1920x1080packed.yuv",
-                       ExpectedFileFormat({Size(1920, 1080), -1, 0, false})),
-        std::make_pair("packed_something_1920x1080.yuv",
-                       ExpectedFileFormat({Size(1920, 1080), -1, 0, false})),
+        std::make_pair(FileInfoForGuess({"something_1920x1080_packed.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), {}, {}, video::DataLayout::Packed})),
+        std::make_pair(FileInfoForGuess({"something_1920x1080_packed-something.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), {}, {}, video::DataLayout::Packed})),
+        std::make_pair(FileInfoForGuess({"something_1920x1080packed.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), {}, {}, {}})),
+        std::make_pair(FileInfoForGuess({"packed_something_1920x1080.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), {}, {}, {}})),
 
-        std::make_pair("sample_1280x720_16bit_444_packed_20200109_114812.yuv",
-                       ExpectedFileFormat({Size(1280, 720), -1, 16u, true})),
-        std::make_pair("sample_1280x720_16b_yuv44416le_packed_20200109_114812.yuv",
-                       ExpectedFileFormat({Size(1280, 720), -1, 16u, true})),
-        std::make_pair("sample_1280x720_16b_yuv16le_packed_444_20200109_114812",
-                       ExpectedFileFormat({Size(1280, 720), -1, 16u, true}))
+        std::make_pair(
+            FileInfoForGuess({"sample_1280x720_16bit_444_packed_20200109_114812.yuv", "", {}}),
+            ExpectedGuessResult({Size(1280, 720), {}, 16u, video::DataLayout::Packed})),
+        std::make_pair(
+            FileInfoForGuess({"sample_1280x720_16b_yuv44416le_packed_20200109_114812.yuv", "", {}}),
+            ExpectedGuessResult({Size(1280, 720), {}, 16u, video::DataLayout::Packed})),
+        std::make_pair(
+            FileInfoForGuess({"sample_1280x720_16b_yuv16le_packed_444_20200109_114812", "", {}}),
+            ExpectedGuessResult({Size(1280, 720), {}, 16u, video::DataLayout::Packed}))
 
             ),
     getTestName);
 
-} // namespace
+} // namespace filesource::frameFormatGuess::test

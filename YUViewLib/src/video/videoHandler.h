@@ -32,8 +32,10 @@
 
 #pragma once
 
-#include "PixelFormat.h"
+#include <filesource/FrameFormatGuess.h>
+
 #include "FrameHandler.h"
+#include "PixelFormat.h"
 
 #include <QBasicTimer>
 #include <QFileInfo>
@@ -75,7 +77,7 @@ public:
 
   // Same as the calculateDifference in FrameHandler. For a video we have to make sure that the
   // right frame is loaded first.
-  virtual QImage calculateDifference(FrameHandler *   item2,
+  virtual QImage calculateDifference(FrameHandler    *item2,
                                      const int        frameIndex0,
                                      const int        frameIndex1,
                                      QList<InfoItem> &differenceInfoList,
@@ -90,14 +92,9 @@ public:
     (void)fileSize;
   }
 
-  // If you know the frame size and the bit depth and the file size then we can try to guess
-  // the format from that. You can override this for a specific raw format. The default
-  // implementation does nothing.
-  virtual void setFormatFromSizeAndName(const Size       frameSize,
-                                        int              bitDepth,
-                                        DataLayout       dataLayout,
-                                        int64_t          fileSize,
-                                        const QFileInfo &fileInfo) = 0;
+  virtual void
+  guessAndSetPixelFormat(const filesource::frameFormatGuess::GuessedFrameFormat &frameFormat,
+                         const filesource::frameFormatGuess::FileInfoForGuess   &fileInfo) = 0;
 
   // The input frame buffer. After the signal signalRequestFrame(int) is emitted, the corresponding
   // frame should be in here and requestedFrame_idx should be set.

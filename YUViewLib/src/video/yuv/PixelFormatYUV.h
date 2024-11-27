@@ -239,6 +239,7 @@ public:
   bool operator!=(const PixelFormatYUV &a) const { return getName() != a.getName(); }
   bool operator==(const std::string &a) const { return getName() == a; }
   bool operator!=(const std::string &a) const { return getName() != a; }
+  operator bool() const { return this->isValid(); }
 
 private:
   // If this is set, the format is defined according to a specific standard and does not
