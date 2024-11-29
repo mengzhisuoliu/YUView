@@ -62,19 +62,11 @@ Subsampling findSubsamplingTypeIndicatorInName(const std::string &name)
   return Subsampling::UNKNOWN;
 }
 
-std::vector<unsigned>
-getDetectionBitDepthList(const std::optional<unsigned> &bitDepthToForceAsFirst)
+std::vector<unsigned> getDetectionBitDepthList(const std::optional<unsigned> &detectedBitrate)
 {
-  std::vector<unsigned> bitDepthList;
-  if (bitDepthToForceAsFirst && *bitDepthToForceAsFirst >= 8 && *bitDepthToForceAsFirst <= 16)
-    bitDepthList.push_back(*bitDepthToForceAsFirst);
-
-  for (auto bitDepth : {10u, 12u, 14u, 16u, 8u})
-  {
-    if (bitDepth == bitDepthToForceAsFirst)
-      bitDepthList.push_back(bitDepth);
-  }
-  return bitDepthList;
+  if (detectedBitrate)
+    return {*detectedBitrate};
+  return {10u, 12u, 14u, 16u, 8u};
 }
 
 std::vector<Subsampling> getDetectionSubsamplingList(Subsampling subsamplingToForceAsFirst,
@@ -96,7 +88,7 @@ std::vector<Subsampling> getDetectionSubsamplingList(Subsampling subsamplingToFo
   if (subsamplingToForceAsFirst != Subsampling::UNKNOWN)
     subsamplingList.push_back(subsamplingToForceAsFirst);
   for (auto subsampling : detectionSubsampleList)
-    if (subsampling == subsamplingToForceAsFirst)
+    if (subsampling != subsamplingToForceAsFirst)
       subsamplingList.push_back(subsampling);
   return subsamplingList;
 }
@@ -247,7 +239,7 @@ checkSpecificFileExtensions(const GuessedFrameFormat &guessedFrameFormat,
 {
   const auto fileExtension = std::filesystem::path(fileInfo.filename).extension();
 
-  if (fileExtension == "raw")
+  if (fileExtension == ".raw")
   {
     const auto rawBayerFormat =
         PixelFormatYUV(Subsampling::YUV_400, guessedFrameFormat.bitDepth.value_or(8));
@@ -256,7 +248,7 @@ checkSpecificFileExtensions(const GuessedFrameFormat &guessedFrameFormat,
       return rawBayerFormat;
   }
 
-  if (fileExtension == "v210" || fileExtension == "V210")
+  if (fileExtension == ".v210" || fileExtension == ".V210")
   {
     const auto v210Format = PixelFormatYUV(PredefinedPixelFormat::V210);
     if (doesPixelFormatMatchFileSize(v210Format, *guessedFrameFormat.frameSize, fileInfo.fileSize))
@@ -383,22 +375,18 @@ checkForSubsamplingIndiatorInName(const std::string        &name,
 std::optional<PixelFormatYUV> ignoreNameAndJustCheckIfSomeBasicFormatsMatchTheFileSize(
     const GuessedFrameFormat &guessedFrameFormat, const FileInfoForGuess &fileInfo)
 {
-  // Nothing using the name worked so far. Check some formats. The first one that matches the file
-  // size wins.
   const auto testSubsamplings =
       std::vector<Subsampling>({Subsampling::YUV_420, Subsampling::YUV_444, Subsampling::YUV_422});
 
   std::vector<int> testBitDepths;
-  if (guessedFrameFormat.bitDepth != 0)
-    // We already extracted a bit depth from the name. Only try that.
+  if (guessedFrameFormat.bitDepth)
     testBitDepths.push_back(*guessedFrameFormat.bitDepth);
   else
-    // We don't know the bit depth. Try different values.
     testBitDepths = {8, 9, 10, 12, 14, 16};
 
   for (const auto &subsampling : testSubsamplings)
   {
-    for (auto bd : testBitDepths)
+    for (const auto bd : testBitDepths)
     {
       auto fmt = PixelFormatYUV(subsampling, bd, PlaneOrder::YUV);
       if (doesPixelFormatMatchFileSize(fmt, *guessedFrameFormat.frameSize, fileInfo.fileSize))

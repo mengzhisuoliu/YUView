@@ -53,9 +53,9 @@ GuessedFrameFormat guessFrameSizeFPSAndBitDepthFromName(const std::string &name)
   // Something_2160x1440_60Hz_8_more.yuv Second matches Something_2160x1440_60_more.yuv or
   // Something_2160x1440_60.yuv Thirs matches Something_2160x1440_more.yuv or
   // Something_2160x1440.yuv
-  const auto REGEXP_LIST = {"([0-9]+)(?:x|X|\\*)([0-9]+)_([0-9]+)(?:Hz)?_([0-9]+)b?[\\._]",
-                            "([0-9]+)(?:x|X|\\*)([0-9]+)_([0-9]+)(?:Hz)?[\\._]",
-                            "([0-9]+)(?:x|X|\\*)([0-9]+)[\\._]"};
+  const auto REGEXP_LIST = {"([0-9]+)(?:x|\\*)([0-9]+)_([0-9]+)(?:hz)?_([0-9]+)b?[\\._]",
+                            "([0-9]+)(?:x|\\*)([0-9]+)_([0-9]+)(?:hz)?[\\._]",
+                            "([0-9]+)(?:x|\\*)([0-9]+)[\\._]"};
 
   for (const auto &regExpStr : REGEXP_LIST)
   {
@@ -111,20 +111,19 @@ GuessedFrameFormat guessFrameSizeAndFrameRateFromResolutionIndicators(const std:
 
 std::optional<Size> guessFrameSizeFromAcronymResolutionIndicators(const std::string &name)
 {
-  const auto nameLower = functions::toLower(name);
-  if (nameLower.find("_cif") != std::string::npos)
+  if (name.find("_cif") != std::string::npos)
     return Size(352, 288);
-  else if (nameLower.find("_qcif") != std::string::npos)
+  else if (name.find("_qcif") != std::string::npos)
     return Size(176, 144);
-  else if (nameLower.find("_4cif") != std::string::npos)
+  else if (name.find("_4cif") != std::string::npos)
     return Size(704, 576);
-  else if (nameLower.find("UHD") != std::string::npos)
+  else if (name.find("uhd") != std::string::npos)
     return Size(3840, 2160);
-  else if (nameLower.find("HD") != std::string::npos)
+  else if (name.find("hd") != std::string::npos)
     return Size(1920, 1080);
-  else if (nameLower.find("1080p") != std::string::npos)
+  else if (name.find("1080p") != std::string::npos)
     return Size(1920, 1080);
-  else if (nameLower.find("720p") != std::string::npos)
+  else if (name.find("720p") != std::string::npos)
     return Size(1280, 720);
 
   return {};
@@ -133,7 +132,7 @@ std::optional<Size> guessFrameSizeFromAcronymResolutionIndicators(const std::str
 std::optional<int> guessFPSFromFPSOrHzIndicators(const std::string &name)
 {
   std::smatch      frameSizeMatch;
-  const std::regex strExpr("([0-9]+)(FPS|fps|HZ|Hz)");
+  const std::regex strExpr("([0-9]+)(fps|hz)");
   if (std::regex_search(name, frameSizeMatch, strExpr))
     return toUnsigned(frameSizeMatch[1].str());
   return {};
@@ -142,7 +141,7 @@ std::optional<int> guessFPSFromFPSOrHzIndicators(const std::string &name)
 std::optional<unsigned> guessBitDepthFromName(const std::string &name)
 {
   const auto REGEXP_LIST = {
-      "(8|9|10|12|16)-?(BIT|Bit|bit)",      // E.g. 10bit, 10BIT, 10-bit, 10-BIT
+      "(8|9|10|12|16)-?(bit)",                // E.g. 10bit, 10BIT, 10-bit, 10-BIT
       "(?:_|\\.|-)(8|9|10|12|16)b(?:_|\\.|-)" // E.g. _16b_ .8b. -12b-
   };
 
@@ -208,25 +207,28 @@ GuessedFrameFormat guessFrameFormat(const FileInfoForGuess &fileInfo)
 
   for (auto const &name : {fileInfo.filename, fileInfo.parentFolderName})
   {
-    if (!result.frameSize)
-      result = guessFrameSizeFPSAndBitDepthFromName(name);
+    const auto nameLower = functions::toLower(name);
 
     if (!result.frameSize)
-      result = guessFrameSizeAndFrameRateFromResolutionIndicators(name);
+      result = guessFrameSizeFPSAndBitDepthFromName(nameLower);
 
     if (!result.frameSize)
-      result.frameSize = guessFrameSizeFromAcronymResolutionIndicators(name);
+      result = guessFrameSizeAndFrameRateFromResolutionIndicators(nameLower);
+
+    if (!result.frameSize)
+      result.frameSize = guessFrameSizeFromAcronymResolutionIndicators(nameLower);
 
     if (!result.frameSize)
       continue;
 
     if (!result.frameRate)
-      result.frameRate = guessFPSFromFPSOrHzIndicators(name);
+      result.frameRate = guessFPSFromFPSOrHzIndicators(nameLower);
 
     if (!result.bitDepth)
-      result.bitDepth = guessBitDepthFromName(name);
+      result.bitDepth = guessBitDepthFromName(nameLower);
 
-    result.dataLayout = guessIsPackedFromName(name);
+    if (!result.dataLayout)
+      result.dataLayout = guessIsPackedFromName(nameLower);
   }
 
   return result;

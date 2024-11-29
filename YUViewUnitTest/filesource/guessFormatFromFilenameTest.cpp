@@ -50,7 +50,8 @@ class GuessFormatFromFilenameTest : public TestWithParam<TestParam>
 std::string getTestName(const testing::TestParamInfo<TestParam> &testParam)
 {
   const auto [fileInfoForGuess, expectedFormat] = testParam.param;
-  return formatFileInfoForGuessAndGuessedFrameFormat(fileInfoForGuess, expectedFormat);
+  return formatFileInfoForGuessForTestName(fileInfoForGuess) + "_" +
+         formatGuessedFrameFormatForTestName(expectedFormat);
 }
 
 TEST_P(GuessFormatFromFilenameTest, TestFormatFromFilename)
@@ -66,6 +67,7 @@ INSTANTIATE_TEST_SUITE_P(
     FilesourceTest,
     GuessFormatFromFilenameTest,
     Values(
+        // Resolution must use an 'x' (case irrelevant) or a '*' between width/height
         std::make_pair(FileInfoForGuess({"something_1920x1080.yuv", "", {}}),
                        ExpectedGuessResult({Size(1920, 1080), {}, {}, {}})),
         std::make_pair(FileInfoForGuess({"something_295x289.yuv", "", {}}),
@@ -78,15 +80,18 @@ INSTANTIATE_TEST_SUITE_P(
                        ExpectedGuessResult({Size(1920, 1080), {}, {}, {}})),
         std::make_pair(FileInfoForGuess({"something_1920x1080_something.yuv", "", {}}),
                        ExpectedGuessResult({Size(1920, 1080), {}, {}, {}})),
-        std::make_pair(FileInfoForGuess({"something_1920_1080.yuv", "", {}}),
-                       ExpectedGuessResult({Size(0, 0), {}, {}, {}})),
-        std::make_pair(FileInfoForGuess({"something_19201080.yuv", "", {}}),
-                       ExpectedGuessResult({Size(0, 0), {}, {}, {}})),
-        std::make_pair(FileInfoForGuess({"something_1280-720.yuv", "", {}}),
-                       ExpectedGuessResult({Size(0, 0), {}, {}, {}})),
-        std::make_pair(FileInfoForGuess({"something_1920-1080_something.yuv", "", {}}),
-                       ExpectedGuessResult({Size(0, 0), {}, {}, {}})),
 
+        // Other characters are not supported
+        std::make_pair(FileInfoForGuess({"something_1920_1080.yuv", "", {}}),
+                       ExpectedGuessResult({{}, {}, {}, {}})),
+        std::make_pair(FileInfoForGuess({"something_19201080.yuv", "", {}}),
+                       ExpectedGuessResult({{}, {}, {}, {}})),
+        std::make_pair(FileInfoForGuess({"something_1280-720.yuv", "", {}}),
+                       ExpectedGuessResult({{}, {}, {}, {}})),
+        std::make_pair(FileInfoForGuess({"something_1920-1080_something.yuv", "", {}}),
+                       ExpectedGuessResult({{}, {}, {}, {}})),
+
+        // Test fps detection with 'xxxhz' or 'xxfps'. Cases should not matter.
         std::make_pair(FileInfoForGuess({"something_1920x1080_25.yuv", "", {}}),
                        ExpectedGuessResult({Size(1920, 1080), 25, {}, {}})),
         std::make_pair(FileInfoForGuess({"something_1920x1080_999.yuv", "", {}}),
@@ -99,10 +104,17 @@ INSTANTIATE_TEST_SUITE_P(
                        ExpectedGuessResult({Size(1920, 1080), 60, {}, {}})),
         std::make_pair(FileInfoForGuess({"something_1920x1080_60HZ.yuv", "", {}}),
                        ExpectedGuessResult({Size(1920, 1080), 60, {}, {}})),
+        std::make_pair(FileInfoForGuess({"something_1920x1080_60hZ.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), 60, {}, {}})),
         std::make_pair(FileInfoForGuess({"something_1920x1080_60fps.yuv", "", {}}),
                        ExpectedGuessResult({Size(1920, 1080), 60, {}, {}})),
         std::make_pair(FileInfoForGuess({"something_1920x1080_60FPS.yuv", "", {}}),
                        ExpectedGuessResult({Size(1920, 1080), 60, {}, {}})),
+        std::make_pair(FileInfoForGuess({"something_1920x1080_60fPs.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), 60, {}, {}})),
+        // The indicator can even be anywhere
+        std::make_pair(FileInfoForGuess({"something240fPssomething_1920x1080.yuv", "", {}}),
+                       ExpectedGuessResult({Size(1920, 1080), 240, {}, {}})),
 
         std::make_pair(FileInfoForGuess({"something_1920x1080_25_8.yuv", "", {}}),
                        ExpectedGuessResult({Size(1920, 1080), 25, 8, {}})),

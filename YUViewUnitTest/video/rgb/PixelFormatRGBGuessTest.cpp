@@ -43,9 +43,8 @@ using filesource::frameFormatGuess::GuessedFrameFormat;
 
 struct TestParameters
 {
-  FileInfoForGuess   fileInfoForGuess;
-  GuessedFrameFormat guessedFrameFormat;
-  PixelFormatRGB     expectedPixelFormat{};
+  FileInfoForGuess fileInfoForGuess;
+  PixelFormatRGB   expectedPixelFormat{};
 };
 
 class GuessRGBFormatFromFilenameFrameSizeAndFileSize : public TestWithParam<TestParameters>
@@ -55,22 +54,24 @@ class GuessRGBFormatFromFilenameFrameSizeAndFileSize : public TestWithParam<Test
 std::string getTestName(const testing::TestParamInfo<TestParameters> &testParametersInfo)
 {
   const auto testParameters = testParametersInfo.param;
-  auto       name = filesource::frameFormatGuess::test::formatFileInfoForGuessAndGuessedFrameFormat(
-      testParameters.fileInfoForGuess, testParameters.guessedFrameFormat);
-  name +=
-      "_" + yuviewTest::replaceNonSupportedCharacters(testParameters.expectedPixelFormat.getName());
-  return name;
+  return filesource::frameFormatGuess::test::formatFileInfoForGuessForTestName(
+             testParameters.fileInfoForGuess) +
+         "_" +
+         yuviewTest::replaceNonSupportedCharacters(testParameters.expectedPixelFormat.getName());
 }
 
 TEST_P(GuessRGBFormatFromFilenameFrameSizeAndFileSize, TestGuess)
 {
   const auto parameters = GetParam();
 
-  const auto guessedRGBFormat = video::rgb::guessPixelFormatFromSizeAndName(
-      parameters.guessedFrameFormat, parameters.fileInfoForGuess);
+  const auto guessedFrameFormat =
+      filesource::frameFormatGuess::guessFrameFormat(parameters.fileInfoForGuess);
 
-  EXPECT_TRUE(guessedRGBFormat.isValid());
-  EXPECT_EQ(guessedRGBFormat, parameters.expectedPixelFormat);
+  const auto guessedFormat =
+      video::rgb::guessPixelFormatFromSizeAndName(guessedFrameFormat, parameters.fileInfoForGuess);
+
+  EXPECT_EQ(guessedFormat.isValid(), parameters.expectedPixelFormat.isValid());
+  EXPECT_EQ(guessedFormat, parameters.expectedPixelFormat);
 }
 
 constexpr auto BytesNoAlpha   = 1920u * 1080 * 12u * 3u; // 12 frames RGB
@@ -84,159 +85,132 @@ INSTANTIATE_TEST_SUITE_P(
     Values(
         // Cases that should not detect anything
         TestParameters({FileInfoForGuess({"noIndicatorHere.yuv", "", 0}),
-                        GuessedFrameFormat({Size(0, 0), {}, {}, {}}),
-                        PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::RGB)}),
+                        PixelFormatRGB()}),
         TestParameters({FileInfoForGuess({"something_1920x1080.yuv", "", BytesNoAlpha}),
-                        GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
                         PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::RGB)}),
 
         // No Alpha
         TestParameters({FileInfoForGuess({"something_1920x1080_rgb.yuv", "", BytesNoAlpha}),
-                        GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
                         PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::RGB)}),
         TestParameters({FileInfoForGuess({"something_1920x1080_rbg.yuv", "", BytesNoAlpha}),
-                        GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
                         PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::RBG)}),
         TestParameters({FileInfoForGuess({"something_1920x1080_grb.yuv", "", BytesNoAlpha}),
-                        GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
                         PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::GRB)}),
         TestParameters({FileInfoForGuess({"something_1920x1080_gbr.yuv", "", BytesNoAlpha}),
-                        GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
                         PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::GBR)}),
         TestParameters({FileInfoForGuess({"something_1920x1080_brg.yuv", "", BytesNoAlpha}),
-                        GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
                         PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::BRG)}),
         TestParameters({FileInfoForGuess({"something_1920x1080_bgr.yuv", "", BytesNoAlpha}),
-                        GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
                         PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::BGR)}),
 
         // Alpha First
         TestParameters(
             {FileInfoForGuess({"something_1920x1080_argb.yuv", "", BytesNoAlpha}),
-             GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
              PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::RGB, AlphaMode::First)}),
         TestParameters(
             {FileInfoForGuess({"something_1920x1080_arbg.yuv", "", BytesNoAlpha}),
-             GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
              PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::RBG, AlphaMode::First)}),
         TestParameters(
             {FileInfoForGuess({"something_1920x1080_agrb.yuv", "", BytesNoAlpha}),
-             GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
              PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::GRB, AlphaMode::First)}),
         TestParameters(
             {FileInfoForGuess({"something_1920x1080_agbr.yuv", "", BytesNoAlpha}),
-             GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
              PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::GBR, AlphaMode::First)}),
         TestParameters(
             {FileInfoForGuess({"something_1920x1080_abrg.yuv", "", BytesNoAlpha}),
-             GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
              PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::BRG, AlphaMode::First)}),
         TestParameters(
             {FileInfoForGuess({"something_1920x1080_abgr.yuv", "", BytesNoAlpha}),
-             GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
              PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::BGR, AlphaMode::First)}),
 
         // Alpha Last
         TestParameters({FileInfoForGuess({"something_1920x1080_rgba.yuv", "", BytesNoAlpha}),
-                        GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
                         PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::RGB, AlphaMode::Last)}),
         TestParameters({FileInfoForGuess({"something_1920x1080_rbga.yuv", "", BytesNoAlpha}),
-                        GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
                         PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::RBG, AlphaMode::Last)}),
         TestParameters({FileInfoForGuess({"something_1920x1080_grba.yuv", "", BytesNoAlpha}),
-                        GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
                         PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::GRB, AlphaMode::Last)}),
         TestParameters({FileInfoForGuess({"something_1920x1080_gbra.yuv", "", BytesNoAlpha}),
-                        GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
                         PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::GBR, AlphaMode::Last)}),
         TestParameters({FileInfoForGuess({"something_1920x1080_brga.yuv", "", BytesNoAlpha}),
-                        GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
                         PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::BRG, AlphaMode::Last)}),
         TestParameters({FileInfoForGuess({"something_1920x1080_bgra.yuv", "", BytesNoAlpha}),
-                        GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
                         PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::BGR, AlphaMode::Last)}),
 
         // Bit dephts
         TestParameters({FileInfoForGuess({"something_1920x1080_rgb10.yuv", "", BytesNoAlpha}),
-                        GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
                         PixelFormatRGB(10, DataLayout::Packed, ChannelOrder::RGB)}),
         TestParameters({FileInfoForGuess({"something_1920x1080_rgb12.yuv", "", BytesNoAlpha}),
-                        GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
                         PixelFormatRGB(12, DataLayout::Packed, ChannelOrder::RGB)}),
         TestParameters({FileInfoForGuess({"something_1920x1080_rgb16.yuv", "", BytesNoAlpha}),
-                        GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
                         PixelFormatRGB(16, DataLayout::Packed, ChannelOrder::RGB)}),
         TestParameters({FileInfoForGuess({"something_1920x1080_rgb48.yuv", "", BytesNoAlpha}),
-                        GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
                         PixelFormatRGB(16, DataLayout::Packed, ChannelOrder::RGB)}),
         TestParameters({FileInfoForGuess({"something_1920x1080_rgb64.yuv", "", BytesNoAlpha}),
-                        GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
                         PixelFormatRGB(16, DataLayout::Packed, ChannelOrder::RGB)}),
         TestParameters({FileInfoForGuess({"something_1920x1080_rgb11.yuv", "", BytesNoAlpha}),
-                        GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
                         PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::RGB)}),
 
         // Endianness
         TestParameters({FileInfoForGuess({"something_1920x1080_rgb8le.yuv", "", BytesNoAlpha}),
-                        GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
                         PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::RGB)}),
         TestParameters({FileInfoForGuess({"something_1920x1080_rgb8be.yuv", "", BytesNoAlpha}),
-                        GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
                         PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::RGB)}),
         TestParameters({FileInfoForGuess({"something_1920x1080_rgb10le.yuv", "", BytesNoAlpha}),
-                        GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
                         PixelFormatRGB(10, DataLayout::Packed, ChannelOrder::RGB)}),
         TestParameters(
             {FileInfoForGuess({"something_1920x1080_rgb10be.yuv", "", BytesNoAlpha}),
-             GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
              PixelFormatRGB(
                  10, DataLayout::Packed, ChannelOrder::RGB, AlphaMode::None, Endianness::Big)}),
         TestParameters(
             {FileInfoForGuess({"something_1920x1080_rgb16be.yuv", "", BytesNoAlpha}),
-             GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
              PixelFormatRGB(
                  16, DataLayout::Packed, ChannelOrder::RGB, AlphaMode::None, Endianness::Big)}),
 
         // DataLayout
         TestParameters({FileInfoForGuess({"something_1920x1080_rgb_packed.yuv", "", BytesNoAlpha}),
-                        GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
                         PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::RGB)}),
         TestParameters({FileInfoForGuess({"something_1920x1080_rgb_planar.yuv", "", BytesNoAlpha}),
-                        GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
                         PixelFormatRGB(8, DataLayout::Planar, ChannelOrder::RGB)}),
         TestParameters(
             {FileInfoForGuess({"something_1920x1080_rgb10le_planar.yuv", "", BytesNoAlpha}),
-             GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
              PixelFormatRGB(10, DataLayout::Planar, ChannelOrder::RGB)}),
         TestParameters(
             {FileInfoForGuess({"something_1920x1080_rgb10be_planar.yuv", "", BytesNoAlpha}),
-             GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
              PixelFormatRGB(
                  10, DataLayout::Planar, ChannelOrder::RGB, AlphaMode::None, Endianness::Big)}),
         TestParameters(
             {FileInfoForGuess({"something_1920x1080_rgb16_planar.yuv", "", BytesNoAlpha}),
-             GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
              PixelFormatRGB(16, DataLayout::Planar, ChannelOrder::RGB)}),
         TestParameters(
             {FileInfoForGuess({"something_1920x1080_rgb16be_planar.yuv", "", BytesNoAlpha}),
-             GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
              PixelFormatRGB(
                  16, DataLayout::Planar, ChannelOrder::RGB, AlphaMode::None, Endianness::Big)}),
 
         // File size check
         TestParameters({FileInfoForGuess({"something_1920x1080_rgb10.yuv", "", NotEnoughBytes}),
-                        GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
                         PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::RGB)}),
         TestParameters({FileInfoForGuess({"something_1920x1080_rgb16be.yuv", "", NotEnoughBytes}),
-                        GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
                         PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::RGB)}),
         TestParameters({FileInfoForGuess({"something_1920x1080_rgb16be.yuv", "", UnfittingBytes}),
-                        GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
                         PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::RGB)}),
+
+        // Format from file extension
+        TestParameters({FileInfoForGuess({"something_1920x1080.rgb", "", BytesNoAlpha}),
+                        PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::RGB)}),
+        TestParameters({FileInfoForGuess({"something_1920x1080.rbg", "", BytesNoAlpha}),
+                        PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::RBG)}),
+        TestParameters({FileInfoForGuess({"something_1920x1080.grb", "", BytesNoAlpha}),
+                        PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::GRB)}),
+        TestParameters({FileInfoForGuess({"something_1920x1080.gbr", "", BytesNoAlpha}),
+                        PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::GBR)}),
+        TestParameters({FileInfoForGuess({"something_1920x1080.brg", "", BytesNoAlpha}),
+                        PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::BRG)}),
+        TestParameters({FileInfoForGuess({"something_1920x1080.bgr", "", BytesNoAlpha}),
+                        PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::BGR)}),
 
         // CMYK file
         TestParameters({FileInfoForGuess({"something_512x768.cmyk", "", BytesBayerFile}),
-                        GuessedFrameFormat({Size(1920, 1080), {}, {}, {}}),
                         PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::RGB, AlphaMode::Last)})
 
             ),

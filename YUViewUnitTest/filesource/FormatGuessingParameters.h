@@ -38,21 +38,23 @@
 namespace filesource::frameFormatGuess::test
 {
 
-static std::string
-formatFileInfoForGuessAndGuessedFrameFormat(const FileInfoForGuess   &fileInfoForGuess,
-                                            const GuessedFrameFormat &guessedFrameFormat)
+static std::string formatFileInfoForGuessForTestName(const FileInfoForGuess &fileInfoForGuess)
 {
-  auto name = yuviewTest::formatTestName("TestName",
-                                         fileInfoForGuess.filename,
-                                         "ParentPath",
-                                         fileInfoForGuess.parentFolderName,
-                                         "fileSize",
-                                         fileInfoForGuess.fileSize,
-                                         "Size",
+  return yuviewTest::formatTestName("Filename",
+                                    fileInfoForGuess.filename,
+                                    "parentFolderName",
+                                    fileInfoForGuess.parentFolderName,
+                                    "fileSize",
+                                    fileInfoForGuess.fileSize);
+}
+
+static std::string formatGuessedFrameFormatForTestName(const GuessedFrameFormat &guessedFrameFormat)
+{
+  auto name = yuviewTest::formatTestName("frameSize",
                                          guessedFrameFormat.frameSize,
-                                         "fps",
+                                         "frameRate",
                                          guessedFrameFormat.frameRate,
-                                         "BitDepth",
+                                         "bitDepth",
                                          guessedFrameFormat.bitDepth);
 
   name += "_DataLayout_";

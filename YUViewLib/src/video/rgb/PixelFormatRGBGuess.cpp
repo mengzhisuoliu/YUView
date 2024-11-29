@@ -44,6 +44,11 @@ using filesource::frameFormatGuess::GuessedFrameFormat;
 namespace video::rgb
 {
 
+namespace
+{
+
+const auto DEFAULT_PIXEL_FORMAT = PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::RGB);
+
 DataLayout findDataLayoutInName(const std::string &fileName)
 {
   std::string matcher = "(?:_|\\.|-)(packed|planar)(?:_|\\.|-)";
@@ -73,6 +78,8 @@ bool doesPixelFormatMatchFileSize(const PixelFormatRGB         &pixelFormat,
   const auto isFileSizeAMultipleOfFrameSize = (*fileSize % bytesPerFrame) == 0;
   return isFileSizeAMultipleOfFrameSize;
 }
+
+} // namespace
 
 std::optional<PixelFormatRGB> checkForPixelFormatIndicatorInName(
     const std::string &filename, const Size &frameSize, const std::optional<std::int64_t> &fileSize)
@@ -141,7 +148,7 @@ std::optional<PixelFormatRGB> checkForPixelFormatIndicatorInFileExtension(
 
   for (const auto &[channelOrder, name] : ChannelOrderMapper)
   {
-    if (fileExtension == functions::toLower(name))
+    if (fileExtension == ("." + functions::toLower(name)))
     {
       auto format = PixelFormatRGB(8, DataLayout::Packed, channelOrder);
       if (doesPixelFormatMatchFileSize(format, frameSize, fileSize))
@@ -160,7 +167,7 @@ std::optional<PixelFormatRGB> checkSpecificFileExtensions(
 {
   const auto fileExtension = std::filesystem::path(filename).extension();
 
-  if (fileExtension == "cmyk")
+  if (fileExtension == ".cmyk")
   {
     const auto format = PixelFormatRGB(8, DataLayout::Packed, ChannelOrder::RGB, AlphaMode::Last);
     if (doesPixelFormatMatchFileSize(format, frameSize, fileSize))
@@ -193,6 +200,9 @@ PixelFormatRGB guessPixelFormatFromSizeAndName(const GuessedFrameFormat &guessed
   if (const auto pixelFormat = checkForPixelFormatIndicatorInName(
           functions::toLower(fileInfo.parentFolderName), frameSize, fileSize))
     return *pixelFormat;
+
+  if (guessedFrameFormat.frameSize)
+    return DEFAULT_PIXEL_FORMAT;
 
   return {};
 }
