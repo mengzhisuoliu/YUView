@@ -182,7 +182,7 @@ FileInfoForGuess getFileInfoForGuessFromPath(const std::filesystem::path filePat
 {
   FileInfoForGuess fileInfoForGuess;
 
-  fileInfoForGuess.filename = filePath.filename();
+  fileInfoForGuess.filename = filePath.filename().string();
   // Todo: This is not really correct. We only want the direct parents path and not the whole parent
   // path.
   fileInfoForGuess.parentFolderName = filePath.parent_path();
