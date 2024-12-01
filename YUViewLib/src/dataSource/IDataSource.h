@@ -35,7 +35,7 @@
 #include <common/InfoItemAndData.h>
 #include <common/Typedef.h>
 
-namespace filesource
+namespace datasource
 {
 
 /* The data source interface defines a something that can provide data.
@@ -56,4 +56,4 @@ public:
   [[nodiscard]] virtual std::int64_t read(ByteVector &buffer, const std::int64_t nrBytes) = 0;
 };
 
-} // namespace filesource
+} // namespace datasource

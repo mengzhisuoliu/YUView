@@ -35,7 +35,7 @@
 #include <TemporaryFile.h>
 #include <dataSource/DataSourceLocalFile.h>
 
-namespace
+namespace datasource::test
 {
 
 using namespace std::literals;
@@ -44,7 +44,7 @@ const ByteVector DUMMY_DATA = {'t', 'e', 's', 't', 'd', 'a', 't', 'a'};
 
 TEST(DataSourceLocalFileTest, OpenFileThatDoesNotExist)
 {
-  filesource::DataSourceLocalFile file("/path/to/file/that/does/not/exist");
+  DataSourceLocalFile file("/path/to/file/that/does/not/exist");
   EXPECT_FALSE(file.isOk());
   EXPECT_FALSE(file);
   EXPECT_TRUE(file.filePath().empty());
@@ -63,7 +63,7 @@ TEST(DataSourceLocalFileTest, OpenFileThatExists_TestRetrievalOfFileInfo)
 {
   yuviewTest::TemporaryFile tempFile(DUMMY_DATA);
 
-  filesource::DataSourceLocalFile file(tempFile.getFilePath());
+  DataSourceLocalFile file(tempFile.getFilePath());
   EXPECT_TRUE(file);
 
   EXPECT_EQ(file.fileSize().value(), 8);
@@ -80,7 +80,7 @@ TEST(DataSourceLocalFileTest, OpenFileThatExists_TestReadingOfData)
 {
   yuviewTest::TemporaryFile tempFile(DUMMY_DATA);
 
-  filesource::DataSourceLocalFile file(tempFile.getFilePath());
+  DataSourceLocalFile file(tempFile.getFilePath());
   EXPECT_TRUE(file.isOk());
   EXPECT_TRUE(file);
 
@@ -105,7 +105,7 @@ TEST(DataSourceLocalFileTest, OpenFileThatExists_TestSeekingBeforeReading)
 {
   yuviewTest::TemporaryFile tempFile(DUMMY_DATA);
 
-  filesource::DataSourceLocalFile file(tempFile.getFilePath());
+  DataSourceLocalFile file(tempFile.getFilePath());
   EXPECT_TRUE(file);
 
   EXPECT_TRUE(file.seek(4));
@@ -126,7 +126,7 @@ TEST(DataSourceLocalFileTest, OpenFileThatExists_TestSeekingFromEOF)
   yuviewTest::TemporaryFile tempFile(DUMMY_DATA);
   ByteVector                buffer;
 
-  filesource::DataSourceLocalFile file(tempFile.getFilePath());
+  DataSourceLocalFile file(tempFile.getFilePath());
 
   EXPECT_TRUE(file);
   EXPECT_EQ(file.read(buffer, 100), 8);
@@ -147,4 +147,4 @@ TEST(DataSourceLocalFileTest, OpenFileThatExists_TestSeekingFromEOF)
   EXPECT_FALSE(file.atEnd());
 }
 
-} // namespace
+} // namespace datasource::test

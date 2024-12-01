@@ -32,7 +32,7 @@
 
 #include "DataSourceLocalFile.h"
 
-namespace filesource
+namespace datasource
 {
 
 DataSourceLocalFile::DataSourceLocalFile(const std::filesystem::path &filePath)
@@ -117,4 +117,4 @@ std::optional<std::int64_t> DataSourceLocalFile::fileSize() const
   return this->path;
 }
 
-} // namespace filesource
+} // namespace datasource

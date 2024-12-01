@@ -37,7 +37,7 @@
 #include <filesystem>
 #include <fstream>
 
-namespace filesource
+namespace datasource
 {
 
 class DataSourceLocalFile : public IDataSource
@@ -64,4 +64,4 @@ protected:
   std::int64_t  filePosition{};
 };
 
-} // namespace filesource
+} // namespace datasource
