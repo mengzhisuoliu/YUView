@@ -37,6 +37,7 @@
 #include <QUrl>
 
 #include <common/Formatting.h>
+#include <common/Functions.h>
 #include <common/FunctionsGui.h>
 #include <filesource/FileSource.h>
 
@@ -231,8 +232,8 @@ playlistItemImageFileSequence::newplaylistItemImageFileSequence(const YUViewDomE
       break;
 
     // check if file with absolute path exists, otherwise check relative path
-    QString filePath =
-        FileSource::getAbsPathFromAbsAndRel(playlistFilePath, absolutePath, relativePath);
+    const auto filePath =
+        functions::getAbsPathFromAbsAndRel(playlistFilePath, absolutePath, relativePath);
 
     // Check if the file exists
     QFileInfo fileInfo(filePath);

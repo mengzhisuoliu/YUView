@@ -143,7 +143,7 @@ playlistItemCompressedVideo::playlistItemCompressedVideo(const QString &compress
   {
     // Open file
     DEBUG_COMPRESSED("playlistItemCompressedVideo::playlistItemCompressedVideo Open annexB file");
-    const auto filePath = std::filesystem::path(compressedFilePath.toStdString());
+    const auto filePath          = std::filesystem::path(compressedFilePath.toStdString());
     this->inputFileAnnexBLoading = std::make_unique<FileSourceAnnexBFile>(filePath);
     if (this->cachingEnabled)
       this->inputFileAnnexBCaching = std::make_unique<FileSourceAnnexBFile>(filePath);
@@ -430,7 +430,7 @@ playlistItemCompressedVideo::newPlaylistItemCompressedVideo(const YUViewDomEleme
   int  displaySignal = root.findChildValue("displayComponent").toInt();
 
   // check if file with absolute path exists, otherwise check relative path
-  auto filePath = FileSource::getAbsPathFromAbsAndRel(playlistFilePath, absolutePath, relativePath);
+  const auto filePath = getAbsPathFromAbsAndRel(playlistFilePath, absolutePath, relativePath);
   if (filePath.isEmpty())
     return nullptr;
 

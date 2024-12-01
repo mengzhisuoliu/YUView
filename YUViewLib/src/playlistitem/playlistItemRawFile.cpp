@@ -520,7 +520,8 @@ playlistItemRawFile *playlistItemRawFile::newplaylistItemRawFile(const YUViewDom
   auto type         = root.findChildValue("type");
 
   // check if file with absolute path exists, otherwise check relative path
-  auto filePath = FileSource::getAbsPathFromAbsAndRel(playlistFilePath, absolutePath, relativePath);
+  const auto filePath =
+      functions::getAbsPathFromAbsAndRel(playlistFilePath, absolutePath, relativePath);
   if (filePath.isEmpty())
     return nullptr;
 
