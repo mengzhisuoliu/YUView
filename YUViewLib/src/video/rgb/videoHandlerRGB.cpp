@@ -718,10 +718,15 @@ rgba_t videoHandlerRGB::getPixelValue(const QPoint &pixelPos) const
       this->currentFrameRawData, this->srcPixelFormat, this->frameSize, pixelPos);
 }
 
-void videoHandlerRGB::setFormatFromSizeAndName(
-    const Size frameSize, int, DataLayout, int64_t fileSize, const QFileInfo &fileInfo)
+void videoHandlerRGB::guessAndSetPixelFormat(
+    const filesource::frameFormatGuess::GuessedFrameFormat &frameFormat,
+    const filesource::frameFormatGuess::FileInfoForGuess   &fileInfo)
 {
-  this->setSrcPixelFormat(guessFormatFromSizeAndName(fileInfo, frameSize, fileSize));
+  const auto pixelFormat = guessPixelFormatFromSizeAndName(frameFormat, fileInfo);
+  if (pixelFormat.isValid())
+    this->setSrcPixelFormat(pixelFormat);
+  else
+    this->setSrcPixelFormat(PixelFormatRGB(8, DataLayout::Planar, ChannelOrder::RGB));
 }
 
 void videoHandlerRGB::drawPixelValues(QPainter     *painter,

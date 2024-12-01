@@ -120,21 +120,16 @@ public:
     this->setRGBPixelFormat(rgb::PixelFormatRGB(name.toStdString()), emitSignal);
   }
 
-  // If you know the frame size of the video, the file size (and optionally the bit depth) we can
-  // guess the remaining values. The rate value is set if a matching format could be found. The sub
-  // format can be one of: "RGB", "GBR" or "BGR"
-  virtual void setFormatFromSizeAndName(const Size       frameSize,
-                                        int              bitDepth,
-                                        DataLayout       dataLayout,
-                                        int64_t          fileSize,
-                                        const QFileInfo &fileInfo) override;
+  void
+  guessAndSetPixelFormat(const filesource::frameFormatGuess::GuessedFrameFormat &frameFormat,
+                         const filesource::frameFormatGuess::FileInfoForGuess   &fileInfo) override;
 
   // Draw the pixel values of the visible pixels in the center of each pixel. Only draw values for
   // the given range of pixels. Overridden from playlistItemVideo. This is a RGB source, so we can
   // draw the source RGB values from the source data.
-  virtual void drawPixelValues(QPainter *    painter,
+  virtual void drawPixelValues(QPainter     *painter,
                                const int     frameIdx,
-                               const QRect & videoRect,
+                               const QRect  &videoRect,
                                const double  zoomFactor,
                                FrameHandler *item2          = nullptr,
                                const bool    markDifference = false,
@@ -144,7 +139,7 @@ public:
   // to another videoHandlerRGB. If item2 cannot be converted to a videoHandlerRGB,
   // we will use the videoHandler::calculateDifference function to calculate the difference
   // using the 8bit RGB values.
-  virtual QImage calculateDifference(FrameHandler *   item2,
+  virtual QImage calculateDifference(FrameHandler    *item2,
                                      const int        frameIdxItem0,
                                      const int        frameIdxItem1,
                                      QList<InfoItem> &differenceInfoList,
@@ -192,7 +187,7 @@ private:
 
   // Convert one frame from the current pixel format to RGB888
   void       convertSourceToRGBA32Bit(const QByteArray &sourceBuffer,
-                                      unsigned char *   targetBuffer,
+                                      unsigned char    *targetBuffer,
                                       QImage::Format    imageFormat);
   QByteArray tmpBufferRawRGBDataCaching;
 

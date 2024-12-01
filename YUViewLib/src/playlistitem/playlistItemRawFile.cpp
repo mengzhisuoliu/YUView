@@ -38,7 +38,7 @@
 
 #include <common/Functions.h>
 #include <common/FunctionsGui.h>
-#include <filesource/GuessFormatFromName.h>
+#include <filesource/FrameFormatGuess.h>
 #include <handler/ItemMemoryHandler.h>
 
 // Activate this if you want to know when which buffer is loaded/converted to image and so on.
@@ -449,23 +449,20 @@ bool playlistItemRawFile::parseY4MFile()
 
 void playlistItemRawFile::setFormatFromFileName()
 {
-  const QFileInfo fileInfo(QString::fromStdString(this->dataSource.getAbsoluteFilePath()));
+  const auto fileInfoForGuess = filesource::frameFormatGuess::getFileInfoForGuessFromPath(
+      this->dataSource.getAbsoluteFilePath());
 
-  const auto fileFormat = guessFormatFromFilename(fileInfo);
-  if (fileFormat.frameSize.isValid())
+  const auto frameFormat = filesource::frameFormatGuess::guessFrameFormat(fileInfoForGuess);
+
+  if (frameFormat.frameSize)
   {
-    this->video->setFrameSize(fileFormat.frameSize);
+    this->video->setFrameSize(*frameFormat.frameSize);
 
     // We were able to extract width and height from the file name using
     // regular expressions. Try to get the pixel format by checking with the file size.
-    this->video->setFormatFromSizeAndName(fileFormat.frameSize,
-                                          fileFormat.bitDepth,
-                                          fileFormat.packed ? video::DataLayout::Packed
-                                                            : video::DataLayout::Planar,
-                                          this->dataSource.getFileSize().value_or(-1),
-                                          fileInfo);
-    if (fileFormat.frameRate != -1)
-      this->prop.frameRate = fileFormat.frameRate;
+    this->video->guessAndSetPixelFormat(frameFormat, fileInfoForGuess);
+    if (frameFormat.frameRate)
+      this->prop.frameRate = *frameFormat.frameRate;
   }
 }
 

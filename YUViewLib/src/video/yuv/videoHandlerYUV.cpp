@@ -3279,22 +3279,15 @@ void videoHandlerYUV::drawPixelValues(QPainter     *painter,
   painter->setPen(backupPen);
 }
 
-void videoHandlerYUV::setFormatFromSizeAndName(Size             frameSize,
-                                               int              bitDepth,
-                                               DataLayout       dataLayout,
-                                               int64_t          fileSize,
-                                               const QFileInfo &fileInfo)
+void videoHandlerYUV::guessAndSetPixelFormat(
+    const filesource::frameFormatGuess::GuessedFrameFormat &frameFormat,
+    const filesource::frameFormatGuess::FileInfoForGuess   &fileInfo)
 {
-  auto fmt = guessFormatFromSizeAndName(frameSize, bitDepth, dataLayout, fileSize, fileInfo);
-
-  if (!fmt.isValid())
-  {
-    // Guessing failed. Set YUV 4:2:0 8 bit so that we can show something.
-    // This will probably be wrong but we are out of options
-    fmt = PixelFormatYUV(Subsampling::YUV_420, 8, PlaneOrder::YUV);
-  }
-
-  setSrcPixelFormat(fmt, false);
+  auto format = guessPixelFormatFromSizeAndName(frameFormat, fileInfo);
+  if (format.isValid())
+    this->setSrcPixelFormat(format);
+  else
+    this->setSrcPixelFormat(PixelFormatYUV(Subsampling::YUV_420, 8, PlaneOrder::YUV));
 }
 
 /** Try to guess the format of the raw YUV data. A list of candidates is tried (candidateModes) and

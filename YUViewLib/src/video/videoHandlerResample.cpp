@@ -63,7 +63,7 @@ void videoHandlerResample::drawFrame(QPainter *painter,
   videoHandler::drawFrame(painter, mappedIndex, zoomFactor, drawRawValues);
 }
 
-QImage videoHandlerResample::calculateDifference(FrameHandler *   item2,
+QImage videoHandlerResample::calculateDifference(FrameHandler    *item2,
                                                  const int        frameIndex0,
                                                  const int        frameIndex1,
                                                  QList<InfoItem> &differenceInfoList,
@@ -174,8 +174,9 @@ void videoHandlerResample::setCutAndSample(indexRange startEnd, int sampling)
   emit signalHandlerChanged(true, RECACHE_CLEAR);
 }
 
-void videoHandlerResample::setFormatFromSizeAndName(
-    const Size, int, DataLayout, int64_t, const QFileInfo &)
+void videoHandlerResample::guessAndSetPixelFormat(
+    const filesource::frameFormatGuess::GuessedFrameFormat &frameFormat,
+    const filesource::frameFormatGuess::FileInfoForGuess   &fileInfo)
 {
   assert(false);
 }

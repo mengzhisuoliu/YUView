@@ -33,17 +33,31 @@
 #pragma once
 
 #include <common/Typedef.h>
+#include <video/PixelFormat.h>
 
-#include <QFileInfo>
+#include <filesystem>
 
-struct FileFormat
+namespace filesource::frameFormatGuess
 {
-    Size     frameSize;
-    int      frameRate{-1};
-    unsigned bitDepth{};
-    bool     packed{false};
 
-    bool operator==(const FileFormat &rhs) const;
+struct FileInfoForGuess
+{
+  std::string                 filename;
+  std::string                 parentFolderName;
+  std::optional<std::int64_t> fileSize;
 };
 
-FileFormat guessFormatFromFilename(const QFileInfo &fileInfo);
+struct GuessedFrameFormat
+{
+  std::optional<Size>              frameSize;
+  std::optional<int>               frameRate{};
+  std::optional<unsigned>          bitDepth{};
+  std::optional<video::DataLayout> dataLayout{};
+
+  bool operator==(const GuessedFrameFormat &rhs) const;
+};
+
+FileInfoForGuess   getFileInfoForGuessFromPath(const std::filesystem::path filePath);
+GuessedFrameFormat guessFrameFormat(const FileInfoForGuess &fileInfo);
+
+} // namespace filesource::frameFormatGuess

@@ -74,11 +74,9 @@ public:
                                          FrameHandler *item2     = nullptr,
                                          const int     frameIdx1 = 0) override;
 
-  virtual void setFormatFromSizeAndName(const Size       frameSize,
-                                        int              bitDepth,
-                                        DataLayout       dataLayout,
-                                        int64_t          fileSize,
-                                        const QFileInfo &fileInfo) override;
+  void
+  guessAndSetPixelFormat(const filesource::frameFormatGuess::GuessedFrameFormat &frameFormat,
+                         const filesource::frameFormatGuess::FileInfoForGuess   &fileInfo) override;
 
   // Calculate the position of the first difference and add the info to the list
   void reportFirstDifferencePosition(QList<InfoItem> &infoList) const;
