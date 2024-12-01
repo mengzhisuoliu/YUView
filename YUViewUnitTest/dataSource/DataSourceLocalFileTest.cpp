@@ -33,7 +33,7 @@
 #include <common/Testing.h>
 
 #include <TemporaryFile.h>
-#include <filesource/DataSourceLocalFile.h>
+#include <dataSource/DataSourceLocalFile.h>
 
 namespace
 {
