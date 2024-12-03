@@ -171,7 +171,7 @@ std::int64_t DataSourceLocalFile::read(ByteVector &buffer, const std::int64_t nr
 
 std::optional<std::int64_t> DataSourceLocalFile::getFileSize() const
 {
-  if (this->filePath.empty())
+  if (!this->isOk())
     return {};
 
   const auto size = std::filesystem::file_size(this->filePath);

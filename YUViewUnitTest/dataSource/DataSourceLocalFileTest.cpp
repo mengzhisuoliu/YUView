@@ -49,7 +49,7 @@ TEST(DataSourceLocalFileTest, OpenFileThatDoesNotExist)
   DataSourceLocalFile file("/path/to/file/that/does/not/exist");
   EXPECT_FALSE(file.isOk());
   EXPECT_FALSE(file);
-  EXPECT_TRUE(file.getFilePath().empty());
+  EXPECT_FALSE(file.getFilePath().empty());
   EXPECT_EQ(file.getInfoList().size(), 0u);
   EXPECT_FALSE(file.atEnd());
   EXPECT_EQ(file.getPosition(), 0);
