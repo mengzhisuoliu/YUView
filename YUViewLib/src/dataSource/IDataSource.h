@@ -48,7 +48,11 @@ public:
   [[nodiscard]] virtual std::vector<InfoItem> getInfoList() const = 0;
   [[nodiscard]] virtual bool                  atEnd() const       = 0;
   [[nodiscard]] virtual bool                  isOk() const        = 0;
-  [[nodiscard]] virtual std::int64_t          position() const    = 0;
+  [[nodiscard]] virtual std::int64_t          getPosition() const = 0;
+
+  virtual void               clearFileCache()           = 0;
+  [[nodiscard]] virtual bool wasSourceModified() const  = 0;
+  virtual void               reloadAndResetDataSource() = 0;
 
   explicit operator bool() const { return this->isOk(); }
 

@@ -36,6 +36,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <mutex>
 
 namespace datasource
 {
@@ -43,25 +44,33 @@ namespace datasource
 class DataSourceLocalFile : public IDataSource
 {
 public:
+  DataSourceLocalFile() = delete;
   DataSourceLocalFile(const std::filesystem::path &filePath);
 
   [[nodiscard]] std::vector<InfoItem> getInfoList() const override;
   [[nodiscard]] bool                  atEnd() const override;
   [[nodiscard]] bool                  isOk() const override;
-  [[nodiscard]] std::int64_t          position() const override;
+  [[nodiscard]] std::int64_t          getPosition() const override;
+
+  void               clearFileCache() override;
+  [[nodiscard]] bool wasSourceModified() const override;
+  void               reloadAndResetDataSource() override;
 
   [[nodiscard]] bool         seek(const std::int64_t pos) override;
   [[nodiscard]] std::int64_t read(ByteVector &buffer, const std::int64_t nrBytes) override;
 
-  [[nodiscard]] std::optional<std::int64_t> fileSize() const;
-  [[nodiscard]] std::filesystem::path       filePath() const;
+  [[nodiscard]] std::optional<std::int64_t> getFileSize() const;
+  [[nodiscard]] std::filesystem::path       getFilePath() const;
 
 protected:
-  std::filesystem::path path{};
-  bool                  isFileOpened{};
+  std::filesystem::path                          filePath{};
+  std::optional<std::filesystem::file_time_type> lastWriteTime{};
+  bool                                           isFileOpened{};
 
   std::ifstream file{};
   std::int64_t  filePosition{};
+
+  std::mutex readingMutex;
 };
 
 } // namespace datasource
