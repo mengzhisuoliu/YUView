@@ -71,17 +71,17 @@ jobs:
             LIBDE265_LOCAL: libde265-internals.so
             ARTIFACT_NAME: YUView.Ubuntu20.AppImage
             CPU_COUNT_COMMAND: nproc
-          - os: macos-12
-            QT_FILE: qtBase_6.7.2_mac12.zip
+          - os: macos-13
+            QT_FILE: qtBase_6.7.2_mac13.zip
             LIBDE265_REMOTE: libde265.dylib
             LIBDE265_LOCAL: libde265-internals.dylib
-            ARTIFACT_NAME: YUView-Mac12-Monterey.zip
+            ARTIFACT_NAME: YUView-Mac13-Monterey.zip
             CPU_COUNT_COMMAND: sysctl -n hw.logicalcpu
           - os: macos-14
             QT_FILE: qtBase_6.7.2_mac14.zip
             LIBDE265_REMOTE: libde265.dylib
             LIBDE265_LOCAL: libde265-internals.dylib
-            ARTIFACT_NAME: YUView-Mac12-Sonoma.zip
+            ARTIFACT_NAME: YUView-Mac14-Sonoma.zip
             CPU_COUNT_COMMAND: sysctl -n hw.logicalcpu
     steps:
     - uses: actions/checkout@v4
