@@ -38,6 +38,7 @@
 #include <QUrl>
 
 #include <common/Formatting.h>
+#include <common/Functions.h>
 #include <common/FunctionsGui.h>
 #include <filesource/FileSource.h>
 
@@ -109,7 +110,8 @@ playlistItemImageFile::newplaylistItemImageFile(const YUViewDomElement &root,
   auto relativePath = root.findChildValue("relativePath");
 
   // check if file with absolute path exists, otherwise check relative path
-  auto filePath = FileSource::getAbsPathFromAbsAndRel(playlistFilePath, absolutePath, relativePath);
+  const auto filePath =
+      functions::getAbsPathFromAbsAndRel(playlistFilePath, absolutePath, relativePath);
   if (filePath.isEmpty())
     return nullptr;
 

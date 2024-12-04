@@ -58,6 +58,10 @@ QString getThemeFileName(QString themeName);
 // The values to replace them by are returned in this order.
 QStringList getThemeColors(QString themeName);
 
+QString getAbsPathFromAbsAndRel(const QString &currentPath,
+                                const QString &absolutePath,
+                                const QString &relativePath);
+
 // Format the data size as a huma readable string. If isBits is set, assumes bits, oterwise bytes.
 // From Qt 5.10 there is a built in function (QLocale::formattedDataSize). But we want to be 5.9
 // compatible.
@@ -65,8 +69,7 @@ QString formatDataSize(double size, bool isBits = false);
 
 QStringList toQStringList(const std::vector<std::string> &stringVec);
 
-template <size_t N>
-QStringList toQStringList(const std::array<std::string_view, N> &stringArray)
+template <size_t N> QStringList toQStringList(const std::array<std::string_view, N> &stringArray)
 {
   QStringList list;
   for (const auto &s : stringArray)

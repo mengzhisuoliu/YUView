@@ -35,7 +35,7 @@
 #include <common/InfoItemAndData.h>
 #include <common/Typedef.h>
 
-namespace filesource
+namespace datasource
 {
 
 /* The data source interface defines a something that can provide data.
@@ -48,7 +48,11 @@ public:
   [[nodiscard]] virtual std::vector<InfoItem> getInfoList() const = 0;
   [[nodiscard]] virtual bool                  atEnd() const       = 0;
   [[nodiscard]] virtual bool                  isOk() const        = 0;
-  [[nodiscard]] virtual std::int64_t          position() const    = 0;
+  [[nodiscard]] virtual std::int64_t          getPosition() const = 0;
+
+  virtual void               clearFileCache()           = 0;
+  [[nodiscard]] virtual bool wasSourceModified() const  = 0;
+  virtual void               reloadAndResetDataSource() = 0;
 
   explicit operator bool() const { return this->isOk(); }
 
@@ -56,4 +60,4 @@ public:
   [[nodiscard]] virtual std::int64_t read(ByteVector &buffer, const std::int64_t nrBytes) = 0;
 };
 
-} // namespace filesource
+} // namespace datasource

@@ -32,14 +32,37 @@
 
 #include "DataSourceLocalFile.h"
 
-namespace filesource
+#ifdef Q_OS_WIN
+#include <windows.h>
+#endif
+
+namespace datasource
 {
+
+namespace
+{
+
+std::optional<std::filesystem::file_time_type>
+getLastWriteTime(const std::filesystem::path &filePath) noexcept
+{
+  try
+  {
+    return {std::filesystem::last_write_time(filePath)};
+  }
+  catch (const std::exception &e)
+  {
+    return {};
+  }
+}
+
+} // namespace
 
 DataSourceLocalFile::DataSourceLocalFile(const std::filesystem::path &filePath)
 {
-  this->file.open(filePath.string(), std::ios_base::in | std::ios_base::binary);
+  this->filePath = filePath;
+  this->file.open(this->filePath.string(), std::ios_base::in | std::ios_base::binary);
   if (this->isOk())
-    this->path = filePath;
+    this->lastWriteTime = getLastWriteTime(this->filePath);
 }
 
 std::vector<InfoItem> DataSourceLocalFile::getInfoList() const
@@ -49,8 +72,8 @@ std::vector<InfoItem> DataSourceLocalFile::getInfoList() const
 
   std::vector<InfoItem> infoList;
   infoList.push_back(
-      InfoItem({"File Path", this->path.string(), "The absolute path of the local file"}));
-  if (const auto size = this->fileSize())
+      InfoItem({"File Path", this->filePath.string(), "The absolute path of the local file"}));
+  if (const auto size = this->getFileSize())
     infoList.push_back(InfoItem({"File Size", std::to_string(*size)}));
 
   return infoList;
@@ -68,9 +91,50 @@ bool DataSourceLocalFile::isOk() const
   return true;
 }
 
-std::int64_t DataSourceLocalFile::position() const
+std::int64_t DataSourceLocalFile::getPosition() const
 {
   return this->filePosition;
+}
+
+void DataSourceLocalFile::clearFileCache()
+{
+  if (!this->isOk())
+    return;
+
+#ifdef Q_OS_WIN
+  // Currently, we only support this on windows. But this is only used in performance testing.
+  // We will close the QFile, open it using the FILE_FLAG_NO_BUFFERING flags, close it and reopen
+  // the QFile. Suggested:
+  // http://stackoverflow.com/questions/478340/clear-file-cache-to-repeat-performance-testing
+  const std::lock_guard<std::mutex> readLock(this->readingMutex);
+  this->file.close();
+
+  LPCWSTR file = this->filePath.wstring().c_str();
+  HANDLE  hFile =
+      CreateFile(file, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_FLAG_NO_BUFFERING, NULL);
+  CloseHandle(hFile);
+
+  this->file.open(this->filePath.string(), std::ios_base::in | std::ios_base::binary);
+#endif
+}
+
+bool DataSourceLocalFile::wasSourceModified() const
+{
+  if (!this->isOk())
+    return false;
+
+  if (const auto newTime = getLastWriteTime(this->filePath))
+    return *newTime > *this->lastWriteTime;
+
+  return false;
+}
+
+void DataSourceLocalFile::reloadAndResetDataSource()
+{
+  this->file.close();
+  this->file.open(this->filePath.string(), std::ios_base::in | std::ios_base::binary);
+  if (this->isOk())
+    this->lastWriteTime = getLastWriteTime(this->filePath);
 }
 
 bool DataSourceLocalFile::seek(const std::int64_t pos)
@@ -90,11 +154,13 @@ std::int64_t DataSourceLocalFile::read(ByteVector &buffer, const std::int64_t nr
   if (!this->isOk())
     return 0;
 
-  const auto usize = static_cast<size_t>(nrBytes);
-  if (static_cast<std::int64_t>(buffer.size()) < nrBytes)
-    buffer.resize(usize);
+  const std::lock_guard<std::mutex> readLock(this->readingMutex);
 
-  this->file.read(reinterpret_cast<char *>(buffer.data()), usize);
+  const auto size = static_cast<size_t>(nrBytes);
+  if (static_cast<std::int64_t>(buffer.size()) < nrBytes)
+    buffer.resize(size);
+
+  this->file.read(reinterpret_cast<char *>(buffer.data()), size);
 
   const auto bytesRead = this->file.gcount();
   buffer.resize(bytesRead);
@@ -103,18 +169,18 @@ std::int64_t DataSourceLocalFile::read(ByteVector &buffer, const std::int64_t nr
   return static_cast<std::int64_t>(bytesRead);
 }
 
-std::optional<std::int64_t> DataSourceLocalFile::fileSize() const
+std::optional<std::int64_t> DataSourceLocalFile::getFileSize() const
 {
-  if (this->path.empty())
+  if (!this->isOk())
     return {};
 
-  const auto size = std::filesystem::file_size(this->path);
+  const auto size = std::filesystem::file_size(this->filePath);
   return static_cast<std::int64_t>(size);
 }
 
-[[nodiscard]] std::filesystem::path DataSourceLocalFile::filePath() const
+[[nodiscard]] std::filesystem::path DataSourceLocalFile::getFilePath() const
 {
-  return this->path;
+  return this->filePath;
 }
 
-} // namespace filesource
+} // namespace datasource

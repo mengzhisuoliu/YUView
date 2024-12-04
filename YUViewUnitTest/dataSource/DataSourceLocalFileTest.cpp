@@ -33,9 +33,11 @@
 #include <common/Testing.h>
 
 #include <TemporaryFile.h>
-#include <filesource/DataSourceLocalFile.h>
+#include <dataSource/DataSourceLocalFile.h>
 
-namespace
+#include <thread>
+
+namespace datasource::test
 {
 
 using namespace std::literals;
@@ -44,15 +46,16 @@ const ByteVector DUMMY_DATA = {'t', 'e', 's', 't', 'd', 'a', 't', 'a'};
 
 TEST(DataSourceLocalFileTest, OpenFileThatDoesNotExist)
 {
-  filesource::DataSourceLocalFile file("/path/to/file/that/does/not/exist");
+  DataSourceLocalFile file("/path/to/file/that/does/not/exist");
   EXPECT_FALSE(file.isOk());
   EXPECT_FALSE(file);
-  EXPECT_TRUE(file.filePath().empty());
+  EXPECT_FALSE(file.getFilePath().empty());
   EXPECT_EQ(file.getInfoList().size(), 0u);
   EXPECT_FALSE(file.atEnd());
-  EXPECT_EQ(file.position(), 0);
-  EXPECT_FALSE(file.fileSize().has_value());
+  EXPECT_EQ(file.getPosition(), 0);
+  EXPECT_FALSE(file.getFileSize().has_value());
   EXPECT_FALSE(file.seek(252));
+  EXPECT_FALSE(file.wasSourceModified());
 
   ByteVector dummyVector;
   EXPECT_EQ(file.read(dummyVector, 378), 0);
@@ -63,10 +66,10 @@ TEST(DataSourceLocalFileTest, OpenFileThatExists_TestRetrievalOfFileInfo)
 {
   yuviewTest::TemporaryFile tempFile(DUMMY_DATA);
 
-  filesource::DataSourceLocalFile file(tempFile.getFilePath());
+  DataSourceLocalFile file(tempFile.getFilePath());
   EXPECT_TRUE(file);
 
-  EXPECT_EQ(file.fileSize().value(), 8);
+  EXPECT_EQ(file.getFileSize().value(), 8);
 
   const auto debugTest = file.getInfoList();
   EXPECT_THAT(file.getInfoList(),
@@ -80,44 +83,47 @@ TEST(DataSourceLocalFileTest, OpenFileThatExists_TestReadingOfData)
 {
   yuviewTest::TemporaryFile tempFile(DUMMY_DATA);
 
-  filesource::DataSourceLocalFile file(tempFile.getFilePath());
+  DataSourceLocalFile file(tempFile.getFilePath());
   EXPECT_TRUE(file.isOk());
   EXPECT_TRUE(file);
 
-  EXPECT_EQ(file.filePath(), tempFile.getFilePath());
+  EXPECT_EQ(file.getFilePath(), tempFile.getFilePath());
   EXPECT_FALSE(file.atEnd());
-  EXPECT_EQ(file.position(), 0);
+  EXPECT_EQ(file.getPosition(), 0);
+  EXPECT_FALSE(file.wasSourceModified());
 
   ByteVector buffer;
   EXPECT_EQ(file.read(buffer, 5), 5);
   EXPECT_TRUE(file);
   EXPECT_THAT(buffer, ElementsAre('t', 'e', 's', 't', 'd'));
-  EXPECT_EQ(file.position(), 5);
+  EXPECT_EQ(file.getPosition(), 5);
+  EXPECT_FALSE(file.wasSourceModified());
 
   EXPECT_EQ(file.read(buffer, 36282), 3);
   EXPECT_TRUE(file);
   EXPECT_THAT(buffer, ElementsAre('a', 't', 'a'));
-  EXPECT_EQ(file.position(), 8);
+  EXPECT_EQ(file.getPosition(), 8);
   EXPECT_TRUE(file.atEnd());
+  EXPECT_FALSE(file.wasSourceModified());
 }
 
 TEST(DataSourceLocalFileTest, OpenFileThatExists_TestSeekingBeforeReading)
 {
   yuviewTest::TemporaryFile tempFile(DUMMY_DATA);
 
-  filesource::DataSourceLocalFile file(tempFile.getFilePath());
+  DataSourceLocalFile file(tempFile.getFilePath());
   EXPECT_TRUE(file);
 
   EXPECT_TRUE(file.seek(4));
   EXPECT_TRUE(file);
-  EXPECT_EQ(file.position(), 4);
+  EXPECT_EQ(file.getPosition(), 4);
   EXPECT_FALSE(file.atEnd());
 
   ByteVector buffer;
   EXPECT_EQ(file.read(buffer, 100), 4);
   EXPECT_TRUE(file);
   EXPECT_THAT(buffer, ElementsAre('d', 'a', 't', 'a'));
-  EXPECT_EQ(file.position(), 8);
+  EXPECT_EQ(file.getPosition(), 8);
   EXPECT_TRUE(file.atEnd());
 }
 
@@ -126,25 +132,53 @@ TEST(DataSourceLocalFileTest, OpenFileThatExists_TestSeekingFromEOF)
   yuviewTest::TemporaryFile tempFile(DUMMY_DATA);
   ByteVector                buffer;
 
-  filesource::DataSourceLocalFile file(tempFile.getFilePath());
+  DataSourceLocalFile file(tempFile.getFilePath());
 
   EXPECT_TRUE(file);
   EXPECT_EQ(file.read(buffer, 100), 8);
   EXPECT_THAT(buffer, ElementsAre('t', 'e', 's', 't', 'd', 'a', 't', 'a'));
   EXPECT_TRUE(file.atEnd());
-  EXPECT_EQ(file.position(), 8);
+  EXPECT_EQ(file.getPosition(), 8);
   EXPECT_TRUE(file);
 
   EXPECT_TRUE(file.seek(2));
   EXPECT_TRUE(file);
-  EXPECT_EQ(file.position(), 2);
+  EXPECT_EQ(file.getPosition(), 2);
   EXPECT_FALSE(file.atEnd());
 
   EXPECT_EQ(file.read(buffer, 3), 3);
   EXPECT_TRUE(file);
   EXPECT_THAT(buffer, ElementsAre('s', 't', 'd'));
-  EXPECT_EQ(file.position(), 5);
+  EXPECT_EQ(file.getPosition(), 5);
   EXPECT_FALSE(file.atEnd());
 }
 
-} // namespace
+TEST(DataSourceLocalFileTest, ModifyOpenedFileExternally_ShouldBeDetected)
+{
+  yuviewTest::TemporaryFile tempFile(DUMMY_DATA);
+  ByteVector                buffer;
+
+  DataSourceLocalFile file(tempFile.getFilePath());
+
+  EXPECT_TRUE(file);
+  EXPECT_FALSE(file.wasSourceModified());
+  EXPECT_EQ(file.read(buffer, 4), 4);
+  EXPECT_THAT(buffer, ElementsAre('t', 'e', 's', 't'));
+
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+
+  std::ofstream tempFileWriter(tempFile.getFilePath(), std::iostream::out | std::iostream::binary);
+  tempFileWriter << 'm' << 'o' << 'd' << 'i' << 'f' << 'i' << 'e' << 'd';
+  tempFileWriter.close();
+
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+
+  EXPECT_TRUE(file.wasSourceModified());
+
+  file.reloadAndResetDataSource();
+
+  EXPECT_EQ(file.read(buffer, 100), 8);
+  EXPECT_THAT(buffer, ElementsAre('m', 'o', 'd', 'i', 'f', 'i', 'e', 'd'));
+}
+
+} // namespace datasource::test

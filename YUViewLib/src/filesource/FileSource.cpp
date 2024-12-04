@@ -159,29 +159,6 @@ std::string FileSource::getAbsoluteFilePath() const
   return this->isFileOpened ? this->fullFilePath.string() : "";
 }
 
-// If you are loading a playlist and you have an absolute path and a relative path, this function
-// will return the absolute path (if a file with that absolute path exists) or convert the relative
-// path to an absolute one and return that (if that file exists). If neither exists the empty string
-// is returned.
-QString FileSource::getAbsPathFromAbsAndRel(const QString &currentPath,
-                                            const QString &absolutePath,
-                                            const QString &relativePath)
-{
-  QFileInfo checkAbsoluteFile(absolutePath);
-  if (checkAbsoluteFile.exists())
-    return absolutePath;
-
-  QFileInfo plFileInfo(currentPath);
-  auto      combinePath = QDir(plFileInfo.path()).filePath(relativePath);
-  QFileInfo checkRelativeFile(combinePath);
-  if (checkRelativeFile.exists() && checkRelativeFile.isFile())
-  {
-    return QDir::cleanPath(combinePath);
-  }
-
-  return {};
-}
-
 bool FileSource::getAndResetFileChangedFlag()
 {
   bool b            = this->fileChanged;

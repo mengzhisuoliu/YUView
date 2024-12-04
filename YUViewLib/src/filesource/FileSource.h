@@ -97,10 +97,6 @@ public:
   void readBytes(byteArrayAligned &data, int64_t startPos, int64_t nrBytes);
 #endif
 
-  static QString getAbsPathFromAbsAndRel(const QString &currentPath,
-                                         const QString &absolutePath,
-                                         const QString &relativePath);
-
   void updateFileWatchSetting();
   void clearFileCache();
 
