@@ -165,6 +165,8 @@ TEST(DataSourceLocalFileTest, ModifyOpenedFileExternally_ShouldBeDetected)
   EXPECT_EQ(file.read(buffer, 4), 4);
   EXPECT_THAT(buffer, ElementsAre('t', 'e', 's', 't'));
 
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+
   std::ofstream tempFileWriter(tempFile.getFilePath(), std::iostream::out | std::iostream::binary);
   tempFileWriter << 'm' << 'o' << 'd' << 'i' << 'f' << 'i' << 'e' << 'd';
   tempFileWriter.close();
