@@ -464,11 +464,7 @@ bool decoderLibde265::pushData(QByteArray &data)
   return true;
 }
 
-#if SSE_CONVERSION
-void decoderLibde265::copyImgToByteArray(const de265_image *src, byteArrayAligned &dst)
-#else
 void decoderLibde265::copyImgToByteArray(const de265_image *src, QByteArray &dst)
-#endif
 {
   // How many image planes are there?
   auto cMode    = this->lib.de265_get_chroma_format(src);
@@ -967,9 +963,9 @@ void decoderLibde265::fillStatisticList(stats::StatisticsData &statisticsData) c
 
   stats::StatisticsType intraDirC(
       10, "Intra Dir Chroma", ColorMapper({0, 34}, PredefinedType::Jet));
-  intraDirC.description = "The intra mode for the chroma component per TU (intra prediction is "
-                          "performed on a TU level)";
-  intraDirC.hasVectorData          = true;
+  intraDirC.description   = "The intra mode for the chroma component per TU (intra prediction is "
+                            "performed on a TU level)";
+  intraDirC.hasVectorData = true;
   intraDirC.renderVectorData       = true;
   intraDirC.renderVectorDataValues = false;
   intraDirC.vectorScale            = 32;

@@ -81,7 +81,7 @@ struct LibraryFunctionsDe265
   const uint8_t *(*de265_internals_get_image_plane)(const struct de265_image *img,
                                                     de265_internals_param     signal,
                                                     int                       channel,
-                                                    int *                     out_stride){};
+                                                    int                      *out_stride){};
   void (*de265_internals_set_parameter_bool)(de265_decoder_context *,
                                              enum de265_internals_param param,
                                              int                        value){};
@@ -124,7 +124,7 @@ public:
 private:
   // A private constructor that creates an uninitialized decoder library.
   // Used by checkLibraryFile to check if a file can be used as a hevcDecoderLibde265.
-  decoderLibde265() : decoderBaseSingleLib(){};
+  decoderLibde265() : decoderBaseSingleLib() {};
 
   // Try to resolve all the required function pointers from the library
   void resolveLibraryFunctionPointers() override;
@@ -175,15 +175,10 @@ private:
 
   // We buffer the current image as a QByteArray so you can call getYUVFrameData as often as
   // necessary without invoking the copy operation from the libde265 buffer to the QByteArray again.
-#if SSE_CONVERSION
-  byteArrayAligned currentOutputBuffer;
-  void             copyImgToByteArray(const de265_image *src, byteArrayAligned &dst);
-#else
   QByteArray currentOutputBuffer;
   void       copyImgToByteArray(
             const de265_image *src,
-            QByteArray &       dst); // Copy the raw data from the de265_image source *src to the byte array
-#endif
+            QByteArray &dst); // Copy the raw data from the de265_image source *src to the byte array
 
   LibraryFunctionsDe265 lib;
 };

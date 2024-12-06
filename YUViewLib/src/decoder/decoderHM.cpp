@@ -372,11 +372,7 @@ QByteArray decoderHM::getRawFrameData()
   return currentOutputBuffer;
 }
 
-#if SSE_CONVERSION
-void decoderHM::copyImgToByteArray(libHMDec_picture *src, byteArrayAligned &dst)
-#else
 void decoderHM::copyImgToByteArray(libHMDec_picture *src, QByteArray &dst)
-#endif
 {
   // How many image planes are there?
   auto fmt      = this->lib.libHMDEC_get_chroma_format(src);

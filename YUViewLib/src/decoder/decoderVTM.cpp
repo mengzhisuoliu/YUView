@@ -366,11 +366,7 @@ QByteArray decoderVTM::getRawFrameData()
   return currentOutputBuffer;
 }
 
-#if SSE_CONVERSION
-void decoderVTM::copyImgToByteArray(libVTMDec_picture *src, byteArrayAligned &dst)
-#else
 void decoderVTM::copyImgToByteArray(libVTMDec_picture *src, QByteArray &dst)
-#endif
 {
   // How many image planes are there?
   auto fmt      = this->lib.libVTMDec_get_chroma_format(src);
