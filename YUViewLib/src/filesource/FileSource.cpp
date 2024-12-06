@@ -77,21 +77,6 @@ bool FileSource::openFile(const std::filesystem::path &filePath)
   return true;
 }
 
-#if SSE_CONVERSION
-// Resize the target array if necessary and read the given number of bytes to the data array
-void FileSource::readBytes(byteArrayAligned &targetBuffer, int64_t startPos, int64_t nrBytes)
-{
-  if (!isOk())
-    return;
-
-  if (targetBuffer.size() < nrBytes)
-    targetBuffer.resize(nrBytes);
-
-  srcFile.seek(startPos);
-  srcFile.read(targetBuffer.data(), nrBytes);
-}
-#endif
-
 // Resize the target array if necessary and read the given number of bytes to the data array
 int64_t FileSource::readBytes(QByteArray &targetBuffer, int64_t startPos, int64_t nrBytes)
 {

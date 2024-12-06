@@ -51,11 +51,11 @@ struct LibraryFunctionsVTM
   void (*libVTMDec_set_SEI_Check)(libVTMDec_context *, bool check_hash){};
   void (*libVTMDec_set_max_temporal_layer)(libVTMDec_context *, int max_layer){};
   libVTMDec_error (*libVTMDec_push_nal_unit)(libVTMDec_context *decCtx,
-                                             const void *       data8,
+                                             const void        *data8,
                                              int                length,
                                              bool               eof,
-                                             bool &             bNewPicture,
-                                             bool &             checkOutputPictures){};
+                                             bool              &bNewPicture,
+                                             bool              &checkOutputPictures){};
 
   // Get a picture and retrive information on the picture
   libVTMDec_picture *(*libVTMDec_get_picture)(libVTMDec_context *){};
@@ -93,7 +93,7 @@ public:
 private:
   // A private constructor that creates an uninitialized decoder library.
   // Used by checkLibraryFile to check if a file can be used as this type of decoder.
-  decoderVTM(){};
+  decoderVTM() {};
 
   // Return the possible names of the HM library
   QStringList getLibraryNames() const override;
@@ -130,15 +130,10 @@ private:
 
   // We buffer the current image as a QByteArray so you can call getYUVFrameData as often as
   // necessary without invoking the copy operation from the hm image buffer to the QByteArray again.
-#if SSE_CONVERSION
-  byteArrayAligned currentOutputBuffer;
-  void             copyImgToByteArray(libVTMDec_picture *src, byteArrayAligned &dst);
-#else
   QByteArray currentOutputBuffer;
   void       copyImgToByteArray(
             libVTMDec_picture *src,
-            QByteArray &       dst); // Copy the raw data from the de265_image source *src to the byte array
-#endif
+            QByteArray &dst); // Copy the raw data from the de265_image source *src to the byte array
 
   LibraryFunctionsVTM lib;
 };

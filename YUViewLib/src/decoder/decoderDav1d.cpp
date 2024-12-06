@@ -449,7 +449,7 @@ bool decoderDav1d::pushData(QByteArray &data)
     // Since dav1d consumes the data (takes ownership), we need to copy it to a new buffer from
     // dav1d
     Dav1dData *dav1dData      = new Dav1dData;
-    uint8_t *  rawDataPointer = this->lib.dav1d_data_create(dav1dData, data.size());
+    uint8_t   *rawDataPointer = this->lib.dav1d_data_create(dav1dData, data.size());
     memcpy(rawDataPointer, data.data(), data.size());
 
     int err = this->lib.dav1d_send_data(decoder, dav1dData);
@@ -476,11 +476,7 @@ bool decoderDav1d::pushData(QByteArray &data)
   return true;
 }
 
-#if SSE_CONVERSION
-void decoderDav1d::copyImgToByteArray(const Dav1dPictureWrapper &src, byteArrayAligned &dst)
-#else
 void decoderDav1d::copyImgToByteArray(const Dav1dPictureWrapper &src, QByteArray &dst)
-#endif
 {
   // How many image planes are there?
   int nrPlanes = (src.getSubsampling() == Subsampling::YUV_400) ? 1 : 3;
@@ -789,7 +785,7 @@ void decoderDav1d::cacheStatistics(const Dav1dPictureWrapper &img)
 
   DEBUG_DAV1D("decoderDav1d::cacheStatistics");
 
-  Av1Block *        blockData   = img.getBlockData();
+  Av1Block         *blockData   = img.getBlockData();
   Dav1dFrameHeader *frameHeader = img.getFrameHeader();
   if (frameHeader == nullptr)
     return;
@@ -904,7 +900,7 @@ void decoderDav1d::parseBlockRecursive(
   }
 }
 
-void decoderDav1d::parseBlockPartition(Av1Block *      blockData,
+void decoderDav1d::parseBlockPartition(Av1Block       *blockData,
                                        unsigned        x,
                                        unsigned        y,
                                        unsigned        blockWidth4,

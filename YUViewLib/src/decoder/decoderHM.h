@@ -143,15 +143,10 @@ private:
 
   // We buffer the current image as a QByteArray so you can call getYUVFrameData as often as
   // necessary without invoking the copy operation from the hm image buffer to the QByteArray again.
-#if SSE_CONVERSION
-  byteArrayAligned currentOutputBuffer;
-  void             copyImgToByteArray(libHMDec_picture *src, byteArrayAligned &dst);
-#else
   QByteArray currentOutputBuffer;
   void       copyImgToByteArray(
             libHMDec_picture *src,
             QByteArray &dst); // Copy the raw data from the de265_image source *src to the byte array
-#endif
 
   LibraryFunctionsHM lib;
 };

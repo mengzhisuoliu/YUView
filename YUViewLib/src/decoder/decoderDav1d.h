@@ -70,12 +70,12 @@ public:
 
   void                    clear() { memset(&curPicture, 0, sizeof(Dav1dPicture)); }
   Size                    getFrameSize() const;
-  Dav1dPicture *          getPicture() const { return (Dav1dPicture *)(&curPicture); }
+  Dav1dPicture           *getPicture() const { return (Dav1dPicture *)(&curPicture); }
   video::yuv::Subsampling getSubsampling() const;
   int                     getBitDepth() const { return curPicture.p.bpc; }
-  uint8_t * getData(int component) const { return (uint8_t *)curPicture.data[component]; }
+  uint8_t  *getData(int component) const { return (uint8_t *)curPicture.data[component]; }
   ptrdiff_t getStride(int component) const { return curPicture.stride[component]; }
-  uint8_t * getDataPrediction(int component) const
+  uint8_t  *getDataPrediction(int component) const
   {
     return internalsSupported ? (uint8_t *)curPicture.pred[component] : nullptr;
   }
@@ -89,7 +89,7 @@ public:
   }
 
   Dav1dSequenceHeader *getSequenceHeader() const { return curPicture.seq_hdr; }
-  Dav1dFrameHeader *   getFrameHeader() const { return curPicture.frame_hdr; }
+  Dav1dFrameHeader    *getFrameHeader() const { return curPicture.frame_hdr; }
 
 private:
   Dav1dPicture curPicture;
@@ -135,7 +135,7 @@ public:
 private:
   // A private constructor that creates an uninitialized decoder library.
   // Used by checkLibraryFile to check if a file can be used as a hevcDecoderLibde265.
-  decoderDav1d() : decoderBaseSingleLib(){};
+  decoderDav1d() : decoderBaseSingleLib() {};
 
   // Try to resolve all the required function pointers from the library
   void resolveLibraryFunctionPointers() override;
@@ -150,7 +150,7 @@ private:
 
   void allocateNewDecoder();
 
-  Dav1dContext *     decoder{};
+  Dav1dContext      *decoder{};
   Dav1dSettings      settings;
   Dav1dAnalyzerFlags analyzerSettings;
 
@@ -170,22 +170,17 @@ private:
 
   // We buffer the current image as a QByteArray so you can call getYUVFrameData as often as
   // necessary without invoking the copy operation from the libde265 buffer to the QByteArray again.
-#if SSE_CONVERSION
-  byteArrayAligned currentOutputBuffer;
-  void             copyImgToByteArray(const Dav1dPictureWrapper &src, byteArrayAligned &dst);
-#else
   QByteArray currentOutputBuffer;
   void       copyImgToByteArray(
             const Dav1dPictureWrapper &src,
-            QByteArray &               dst); // Copy the raw data from the Dav1dPicture source *src to the byte array
-#endif
+            QByteArray &dst); // Copy the raw data from the Dav1dPicture source *src to the byte array
 
   // Statistics
   void fillStatisticList(stats::StatisticsData &) const override;
   void cacheStatistics(const Dav1dPictureWrapper &img);
   void parseBlockRecursive(
       Av1Block *blockData, unsigned x, unsigned y, BlockLevel level, dav1dFrameInfo &frameInfo);
-  void         parseBlockPartition(Av1Block *      blockData,
+  void         parseBlockPartition(Av1Block       *blockData,
                                    unsigned        x,
                                    unsigned        y,
                                    unsigned        blockWidth4,

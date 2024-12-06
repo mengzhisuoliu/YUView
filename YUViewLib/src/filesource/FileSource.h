@@ -93,9 +93,6 @@ public:
   // Read the given number of bytes starting at startPos into the QByteArray out
   // Resize the QByteArray if necessary. Return how many bytes were read.
   int64_t readBytes(QByteArray &targetBuffer, int64_t startPos, int64_t nrBytes);
-#if SSE_CONVERSION
-  void readBytes(byteArrayAligned &data, int64_t startPos, int64_t nrBytes);
-#endif
 
   void updateFileWatchSetting();
   void clearFileCache();
