@@ -152,7 +152,8 @@ Color ColorMapper::getColor(double value) const
     // The value scaled from 0 to 1 within the range (rangeMin ... rangeMax)
     auto valScaled = (value - this->valueRange.min) / rangeWidth;
 
-    auto interpolate = [&valScaled](int start, int end) {
+    auto interpolate = [&valScaled](int start, int end)
+    {
       auto range       = end - start;
       auto rangeScaled = std::floor(valScaled * double(range) + 0.5);
       return start + int(rangeScaled);
@@ -415,7 +416,7 @@ void ColorMapper::loadPlaylist(const QStringPairList &attributes)
       auto value = attribute.second.toInt(&ok);
       if (ok)
       {
-        if (auto type = MappingTypeMapper.at(value))
+        if (auto type = MappingTypeMapper.getValueAt(value))
           this->mappingType = *type;
       }
       else if (auto type = MappingTypeMapper.getValue(attribute.second.toStdString()))

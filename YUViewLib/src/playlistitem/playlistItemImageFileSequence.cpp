@@ -41,6 +41,8 @@
 #include <common/FunctionsGui.h>
 #include <filesource/FileSource.h>
 
+using namespace std::string_view_literals;
+
 playlistItemImageFileSequence::playlistItemImageFileSequence(const QString &rawFilePath)
     : playlistItemWithVideo(rawFilePath)
 {

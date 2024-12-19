@@ -44,10 +44,10 @@ enum class TestEnum
   ValueThree
 };
 
-constexpr EnumMapper<TestEnum, 3> TestEnumMapper(std::make_pair(TestEnum::ValueOne, "ValueOne"sv),
-                                                 std::make_pair(TestEnum::ValueTwo, "ValueTwo"sv),
-                                                 std::make_pair(TestEnum::ValueThree,
-                                                                "ValueThree"sv));
+constexpr EnumMapper<TestEnum, 3> TestEnumMapper = {
+    std::make_pair(TestEnum::ValueOne, "ValueOne"),
+    std::make_pair(TestEnum::ValueTwo, "ValueTwo"),
+    std::make_pair(TestEnum::ValueThree, "ValueThree")};
 
 const std::vector<TestEnum> expectedValues = {
     TestEnum::ValueOne, TestEnum::ValueTwo, TestEnum::ValueThree};
@@ -58,13 +58,6 @@ TEST(EnumMapperTest, testSize)
   ASSERT_EQ(TestEnumMapper.size(), 3u);
 }
 
-TEST(EnumMapperTest, testGetName)
-{
-  EXPECT_EQ(TestEnumMapper.getName(TestEnum::ValueOne), "ValueOne");
-  EXPECT_EQ(TestEnumMapper.getName(TestEnum::ValueTwo), "ValueTwo");
-  EXPECT_EQ(TestEnumMapper.getName(TestEnum::ValueThree), "ValueThree");
-}
-
 TEST(EnumMapperTest, testGetValue)
 {
   EXPECT_EQ(TestEnumMapper.getValue("ValueOne"), TestEnum::ValueOne);
@@ -73,6 +66,13 @@ TEST(EnumMapperTest, testGetValue)
 
   EXPECT_FALSE(TestEnumMapper.getValue("valueOne"));
   EXPECT_FALSE(TestEnumMapper.getValue("NonExistent"));
+}
+
+TEST(EnumMapperTest, testGetName)
+{
+  EXPECT_EQ(TestEnumMapper.getName(TestEnum::ValueOne), "ValueOne");
+  EXPECT_EQ(TestEnumMapper.getName(TestEnum::ValueTwo), "ValueTwo");
+  EXPECT_EQ(TestEnumMapper.getName(TestEnum::ValueThree), "ValueThree");
 }
 
 TEST(EnumMapperTest, testGetValueCaseInsensitive)
@@ -115,13 +115,24 @@ TEST(EnumMapperTest, testIndexOf)
 
 TEST(EnumMapperTest, testAt)
 {
-  EXPECT_EQ(TestEnumMapper.at(0), TestEnum::ValueOne);
-  EXPECT_EQ(TestEnumMapper.at(1), TestEnum::ValueTwo);
-  EXPECT_EQ(TestEnumMapper.at(2), TestEnum::ValueThree);
+  EXPECT_EQ(TestEnumMapper.at(0), std::make_pair(TestEnum::ValueOne, "ValueOne"));
+  EXPECT_EQ(TestEnumMapper.at(1), std::make_pair(TestEnum::ValueTwo, "ValueTwo"));
+  EXPECT_EQ(TestEnumMapper.at(2), std::make_pair(TestEnum::ValueThree, "ValueThree"));
 
-  EXPECT_FALSE(TestEnumMapper.at(3));
-  EXPECT_FALSE(TestEnumMapper.at(4));
-  EXPECT_FALSE(TestEnumMapper.at(8902));
+  EXPECT_THROW(TestEnumMapper.at(3), std::out_of_range);
+  EXPECT_THROW(TestEnumMapper.at(4), std::out_of_range);
+  EXPECT_THROW(TestEnumMapper.at(8902), std::out_of_range);
+}
+
+TEST(EnumMapperTest, testGetValueAt)
+{
+  EXPECT_EQ(TestEnumMapper.getValueAt(0), TestEnum::ValueOne);
+  EXPECT_EQ(TestEnumMapper.getValueAt(1), TestEnum::ValueTwo);
+  EXPECT_EQ(TestEnumMapper.getValueAt(2), TestEnum::ValueThree);
+
+  EXPECT_FALSE(TestEnumMapper.getValueAt(3));
+  EXPECT_FALSE(TestEnumMapper.getValueAt(4));
+  EXPECT_FALSE(TestEnumMapper.getValueAt(8902));
 }
 
 TEST(EnumMapperTest, testGetValues)

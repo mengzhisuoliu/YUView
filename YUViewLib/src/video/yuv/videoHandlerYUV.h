@@ -56,11 +56,11 @@ enum class ComponentDisplayMode
   DisplayCr
 };
 
-const EnumMapper<ComponentDisplayMode, 4>
-    ComponentDisplayModeMapper(std::make_pair(ComponentDisplayMode::DisplayAll, "Y'CbCr"sv),
-                               std::make_pair(ComponentDisplayMode::DisplayY, "Luma (Y) Only"sv),
-                               std::make_pair(ComponentDisplayMode::DisplayCb, "Cb only"sv),
-                               std::make_pair(ComponentDisplayMode::DisplayCr, "Cr only"sv));
+const EnumMapper<ComponentDisplayMode, 4> ComponentDisplayModeMapper = {
+    std::make_pair(ComponentDisplayMode::DisplayAll, "Y'CbCr"),
+    std::make_pair(ComponentDisplayMode::DisplayY, "Luma (Y) Only"),
+    std::make_pair(ComponentDisplayMode::DisplayCb, "Cb only"),
+    std::make_pair(ComponentDisplayMode::DisplayCr, "Cr only")};
 
 struct ConversionSettings
 {

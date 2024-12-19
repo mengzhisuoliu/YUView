@@ -34,8 +34,8 @@
 
 #include <QSettings>
 
-#include <common/FunctionsGui.h>
 #include <common/EnumMapper.h>
+#include <common/FunctionsGui.h>
 #include <common/Typedef.h>
 #include <playlistitem/playlistItem.h>
 
@@ -52,10 +52,10 @@ using namespace std::chrono_literals;
 namespace
 {
 
-constexpr EnumMapper<PlaybackController::RepeatMode, 3>
-    RepeatModeMapper(std::make_pair(PlaybackController::RepeatMode::Off, "Off"sv),
-                     std::make_pair(PlaybackController::RepeatMode::One, "One"sv),
-                     std::make_pair(PlaybackController::RepeatMode::All, "All"sv));
+constexpr EnumMapper<PlaybackController::RepeatMode, 3> RepeatModeMapper = {
+    std::make_pair(PlaybackController::RepeatMode::Off, "Off"),
+    std::make_pair(PlaybackController::RepeatMode::One, "One"),
+    std::make_pair(PlaybackController::RepeatMode::All, "All")};
 
 }
 
@@ -108,7 +108,7 @@ PlaybackController::PlaybackController()
   QSettings  settings;
   const auto repeatModeOffIndex = static_cast<int>(RepeatModeMapper.indexOf(RepeatMode::Off));
   auto       repeatModeIdx      = settings.value("RepeatMode", repeatModeOffIndex).toInt();
-  if (auto newRepeatMode = RepeatModeMapper.at(repeatModeIdx))
+  if (auto newRepeatMode = RepeatModeMapper.getValueAt(repeatModeIdx))
     this->repeatMode = *newRepeatMode;
 
   this->loadButtonIcons();

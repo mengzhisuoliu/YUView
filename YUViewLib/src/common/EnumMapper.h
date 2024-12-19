@@ -32,86 +32,14 @@
 
 #pragma once
 
-#include <algorithm>
 #include <array>
-#include <iterator>
-#include <optional>
-#include <string_view>
 
 #include "Functions.h"
 
-using namespace std::string_view_literals;
-
-template <class ValueType, std::size_t N> struct EnumMapper
+template <class ValueType, std::size_t N>
+struct EnumMapper : public std::array<std::pair<ValueType, std::string_view>, N>
 {
-public:
   using ValueNamePair = std::pair<ValueType, std::string_view>;
-  using ItemArray     = std::array<ValueType, N>;
-  using ItemIterator  = typename ItemArray::const_iterator;
-  using NameArray     = std::array<std::string_view, N>;
-  using NameIterator  = typename NameArray::const_iterator;
-
-  struct Iterator
-  {
-    using iterator_category = std::forward_iterator_tag;
-    using difference_type   = int;
-    using value_type        = ValueNamePair;
-    using pointer           = ValueNamePair *;
-    using reference         = ValueNamePair &;
-
-    Iterator(const ItemIterator itItem, const NameIterator itName) : itItem(itItem), itName(itName)
-    {
-      this->valueNamePair.first  = *itItem;
-      this->valueNamePair.second = *itName;
-    }
-
-    ValueNamePair const &operator*() const { return this->valueNamePair; }
-    ValueNamePair const *operator->() const { return &this->valueNamePair; }
-
-    Iterator &operator++()
-    {
-      ++this->itItem;
-      ++this->itName;
-      this->valueNamePair.first  = *this->itItem;
-      this->valueNamePair.second = *this->itName;
-      return *this;
-    }
-
-    friend bool operator==(const Iterator &a, const Iterator &b)
-    {
-      return a.itItem == b.itItem && a.itName == b.itName;
-    };
-    friend bool operator!=(const Iterator &a, const Iterator &b)
-    {
-      return a.itItem != b.itItem || a.itName != b.itName;
-    };
-
-  private:
-    ItemIterator  itItem;
-    NameIterator  itName;
-    ValueNamePair valueNamePair{};
-  };
-
-  Iterator begin() const { return Iterator(this->items.begin(), this->names.begin()); }
-  Iterator end() const { return Iterator(this->items.end(), this->names.end()); }
-
-  template <typename... Args> constexpr EnumMapper(Args... args)
-  {
-    static_assert(sizeof...(Args) == N);
-    this->addElementsRecursively(0, args...);
-  }
-
-  constexpr std::size_t size() const { return N; }
-
-  constexpr std::string_view getName(const ValueType value) const
-  {
-    const auto it = std::find(this->items.begin(), this->items.end(), value);
-    if (it == this->items.end())
-      throw std::logic_error(
-          "The given type T was not registered in the mapper. All possible enums must be mapped.");
-    const auto index = std::distance(this->items.begin(), it);
-    return this->names.at(index);
-  }
 
   constexpr std::optional<ValueType> getValue(const std::string_view name) const
   {
@@ -119,79 +47,91 @@ public:
         std::find_if(this->begin(),
                      this->end(),
                      [&name](const ValueNamePair &pair) { return pair.second == name; });
+
     if (it == this->end())
       return {};
 
     return it->first;
   }
 
+  constexpr std::string_view getName(const ValueType &value) const
+  {
+    const auto it =
+        std::find_if(this->begin(),
+                     this->end(),
+                     [&value](const ValueNamePair &pair) { return pair.first == value; });
+
+    if (it == this->end())
+      return {};
+
+    return it->second;
+  }
+
   constexpr std::optional<ValueType> getValueCaseInsensitive(const std::string_view name) const
   {
-    const auto compareToNameLowercase = [&name](const std::string_view str)
+    const auto compareToNameLowercase = [&name](const ValueNamePair &valueNamePair)
     {
-      if (name.length() != str.length())
+      if (name.length() != valueNamePair.second.length())
         return false;
       for (std::size_t i = 0; i < name.length(); ++i)
       {
-        if (std::tolower(name.at(i)) != std::tolower(str.at(i)))
+        if (std::tolower(name.at(i)) != std::tolower(valueNamePair.second.at(i)))
           return false;
       }
       return true;
     };
 
-    const auto it = std::find_if(this->names.begin(), this->names.end(), compareToNameLowercase);
-    if (it == this->names.end())
+    const auto it = std::find_if(this->begin(), this->end(), compareToNameLowercase);
+    if (it == this->end())
       return {};
 
-    const auto index = std::distance(this->names.begin(), it);
-    return this->items.at(index);
+    return it->first;
   }
 
   std::optional<ValueType> getValueFromNameOrIndex(const std::string_view nameOrIndex) const
   {
     if (auto index = functions::toUnsigned(nameOrIndex))
       if (*index < N)
-        return this->items.at(*index);
+        return this->at(*index).first;
 
     return this->getValue(nameOrIndex);
   }
 
   constexpr size_t indexOf(const ValueType value) const
   {
-    const auto it = std::find(this->items.begin(), this->items.end(), value);
-    if (it == this->items.end())
+    const auto it =
+        std::find_if(this->begin(),
+                     this->end(),
+                     [&value](const ValueNamePair &pair) { return pair.first == value; });
+
+    if (it == this->end())
       throw std::logic_error(
           "The given type T was not registered in the mapper. All possible enums must be mapped.");
 
-    const auto index = std::distance(this->items.begin(), it);
+    const auto index = std::distance(this->begin(), it);
     return index;
   }
 
-  constexpr std::optional<ValueType> at(const size_t index) const
+  constexpr std::optional<ValueType> getValueAt(const size_t index) const
   {
     if (index >= N)
       return {};
-    return this->items.at(index);
+    return this->at(index).first;
   }
 
-  constexpr const ItemArray &getValues() const { return this->items; }
-  constexpr const NameArray &getNames() const { return this->names; }
-
-private:
-  constexpr void addElementsRecursively(const std::size_t) {};
-
-  template <typename ArgumentType, typename... Args>
-  constexpr void addElementsRecursively(const std::size_t index, ArgumentType first, Args... args)
+  constexpr std::array<ValueType, N> getValues() const
   {
-    static_assert(std::is_same<ValueNamePair, ArgumentType>());
-
-    const auto [value, name] = first;
-    this->items[index]       = value;
-    this->names[index]       = name;
-
-    addElementsRecursively(index + 1, args...);
+    std::array<ValueType, N> values;
+    for (std::size_t i = 0; i < N; ++i)
+      values[i] = this->at(i).first;
+    return values;
   }
 
-  ItemArray items{};
-  NameArray names{};
+  constexpr std::array<std::string_view, N> getNames() const
+  {
+    std::array<std::string_view, N> names;
+    for (std::size_t i = 0; i < N; ++i)
+      names[i] = this->at(i).second;
+    return names;
+  }
 };

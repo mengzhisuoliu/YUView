@@ -53,9 +53,9 @@ enum class SliceType
   I
 };
 
-constexpr EnumMapper<SliceType, 3> SliceTypeMapper(std::make_pair(SliceType::B, "B"sv),
-                                                      std::make_pair(SliceType::P, "P"sv),
-                                                      std::make_pair(SliceType::I, "I"sv));
+constexpr EnumMapper<SliceType, 3> SliceTypeMapper = {std::make_pair(SliceType::B, "B"),
+                                                      std::make_pair(SliceType::P, "P"),
+                                                      std::make_pair(SliceType::I, "I")};
 
 class slice_header : public NalRBSP
 {

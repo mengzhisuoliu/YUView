@@ -69,6 +69,8 @@ using namespace decoder;
 #define DEBUG_COMPRESSED(f) ((void)0)
 #endif
 
+using namespace std::string_view_literals;
+
 namespace
 {
 

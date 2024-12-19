@@ -49,10 +49,10 @@ enum class Channel
   Alpha
 };
 
-constexpr auto ChannelMapper = EnumMapper<Channel, 4>(std::make_pair(Channel::Red, "Red"sv),
-                                                      std::make_pair(Channel::Green, "Green"sv),
-                                                      std::make_pair(Channel::Blue, "Blue"sv),
-                                                      std::make_pair(Channel::Alpha, "Alpha"sv));
+constexpr EnumMapper<Channel, 4> ChannelMapper = {std::make_pair(Channel::Red, "Red"),
+                                                  std::make_pair(Channel::Green, "Green"),
+                                                  std::make_pair(Channel::Blue, "Blue"),
+                                                  std::make_pair(Channel::Alpha, "Alpha")};
 
 struct rgba_t
 {
@@ -107,13 +107,13 @@ enum class ChannelOrder
   BGR
 };
 
-constexpr EnumMapper<ChannelOrder, 6> ChannelOrderMapper(std::make_pair(ChannelOrder::RGB, "RGB"sv),
-                                                         std::make_pair(ChannelOrder::RBG, "RBG"sv),
-                                                         std::make_pair(ChannelOrder::GRB, "GRB"sv),
-                                                         std::make_pair(ChannelOrder::GBR, "GBR"sv),
-                                                         std::make_pair(ChannelOrder::BRG, "BRG"sv),
-                                                         std::make_pair(ChannelOrder::BGR,
-                                                                        "BGR"sv));
+constexpr EnumMapper<ChannelOrder, 6> ChannelOrderMapper = {
+    std::make_pair(ChannelOrder::RGB, "RGB"),
+    std::make_pair(ChannelOrder::RBG, "RBG"),
+    std::make_pair(ChannelOrder::GRB, "GRB"),
+    std::make_pair(ChannelOrder::GBR, "GBR"),
+    std::make_pair(ChannelOrder::BRG, "BRG"),
+    std::make_pair(ChannelOrder::BGR, "BGR")};
 
 enum class AlphaMode
 {
@@ -122,10 +122,9 @@ enum class AlphaMode
   Last
 };
 
-constexpr auto AlphaModeMapper =
-    EnumMapper<AlphaMode, 3>(std::make_pair(AlphaMode::None, "None"sv),
-                             std::make_pair(AlphaMode::First, "First"sv),
-                             std::make_pair(AlphaMode::Last, "Last"sv));
+constexpr EnumMapper<AlphaMode, 3> AlphaModeMapper = {std::make_pair(AlphaMode::None, "None"),
+                                                      std::make_pair(AlphaMode::First, "First"),
+                                                      std::make_pair(AlphaMode::Last, "Last")};
 
 // This class defines a specific RGB format with all properties like order of R/G/B, bitsPerValue,
 // planarity...

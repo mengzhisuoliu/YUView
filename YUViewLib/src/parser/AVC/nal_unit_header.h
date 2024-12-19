@@ -67,31 +67,31 @@ enum class NalType
   RESERVED_23
 };
 
-constexpr EnumMapper<NalType, 24> NalTypeMapper(
-    std::make_pair(NalType::UNSPECIFIED, "UNSPECIFIED"sv),
-    std::make_pair(NalType::CODED_SLICE_NON_IDR, "CODED_SLICE_NON_IDR"sv),
-    std::make_pair(NalType::CODED_SLICE_DATA_PARTITION_A, "CODED_SLICE_DATA_PARTITION_A"sv),
-    std::make_pair(NalType::CODED_SLICE_DATA_PARTITION_B, "CODED_SLICE_DATA_PARTITION_B"sv),
-    std::make_pair(NalType::CODED_SLICE_DATA_PARTITION_C, "CODED_SLICE_DATA_PARTITION_C"sv),
-    std::make_pair(NalType::CODED_SLICE_IDR, "CODED_SLICE_IDR"sv),
-    std::make_pair(NalType::SEI, "SEI"sv),
-    std::make_pair(NalType::SPS, "SPS"sv),
-    std::make_pair(NalType::PPS, "PPS"sv),
-    std::make_pair(NalType::AUD, "AUD"sv),
-    std::make_pair(NalType::END_OF_SEQUENCE, "END_OF_SEQUENCE"sv),
-    std::make_pair(NalType::END_OF_STREAM, "END_OF_STREAM"sv),
-    std::make_pair(NalType::FILLER, "FILLER"sv),
-    std::make_pair(NalType::SPS_EXT, "SPS_EXT"sv),
-    std::make_pair(NalType::PREFIX_NAL, "PREFIX_NAL"sv),
-    std::make_pair(NalType::SUBSET_SPS, "SUBSET_SPS"sv),
-    std::make_pair(NalType::DEPTH_PARAMETER_SET, "DEPTH_PARAMETER_SET"sv),
-    std::make_pair(NalType::RESERVED_17, "RESERVED_17"sv),
-    std::make_pair(NalType::RESERVED_18, "RESERVED_18"sv),
-    std::make_pair(NalType::CODED_SLICE_AUX, "CODED_SLICE_AUX"sv),
-    std::make_pair(NalType::CODED_SLICE_EXTENSION, "CODED_SLICE_EXTENSION"sv),
-    std::make_pair(NalType::CODED_SLICE_EXTENSION_DEPTH_MAP, "CODED_SLICE_EXTENSION_DEPTH_MAP"sv),
-    std::make_pair(NalType::RESERVED_22, "RESERVED_22"sv),
-    std::make_pair(NalType::RESERVED_23, "RESERVED_23"sv));
+constexpr EnumMapper<NalType, 24> NalTypeMapper = {
+    std::make_pair(NalType::UNSPECIFIED, "UNSPECIFIED"),
+    std::make_pair(NalType::CODED_SLICE_NON_IDR, "CODED_SLICE_NON_IDR"),
+    std::make_pair(NalType::CODED_SLICE_DATA_PARTITION_A, "CODED_SLICE_DATA_PARTITION_A"),
+    std::make_pair(NalType::CODED_SLICE_DATA_PARTITION_B, "CODED_SLICE_DATA_PARTITION_B"),
+    std::make_pair(NalType::CODED_SLICE_DATA_PARTITION_C, "CODED_SLICE_DATA_PARTITION_C"),
+    std::make_pair(NalType::CODED_SLICE_IDR, "CODED_SLICE_IDR"),
+    std::make_pair(NalType::SEI, "SEI"),
+    std::make_pair(NalType::SPS, "SPS"),
+    std::make_pair(NalType::PPS, "PPS"),
+    std::make_pair(NalType::AUD, "AUD"),
+    std::make_pair(NalType::END_OF_SEQUENCE, "END_OF_SEQUENCE"),
+    std::make_pair(NalType::END_OF_STREAM, "END_OF_STREAM"),
+    std::make_pair(NalType::FILLER, "FILLER"),
+    std::make_pair(NalType::SPS_EXT, "SPS_EXT"),
+    std::make_pair(NalType::PREFIX_NAL, "PREFIX_NAL"),
+    std::make_pair(NalType::SUBSET_SPS, "SUBSET_SPS"),
+    std::make_pair(NalType::DEPTH_PARAMETER_SET, "DEPTH_PARAMETER_SET"),
+    std::make_pair(NalType::RESERVED_17, "RESERVED_17"),
+    std::make_pair(NalType::RESERVED_18, "RESERVED_18"),
+    std::make_pair(NalType::CODED_SLICE_AUX, "CODED_SLICE_AUX"),
+    std::make_pair(NalType::CODED_SLICE_EXTENSION, "CODED_SLICE_EXTENSION"),
+    std::make_pair(NalType::CODED_SLICE_EXTENSION_DEPTH_MAP, "CODED_SLICE_EXTENSION_DEPTH_MAP"),
+    std::make_pair(NalType::RESERVED_22, "RESERVED_22"),
+    std::make_pair(NalType::RESERVED_23, "RESERVED_23")};
 
 class nal_unit_header
 {
