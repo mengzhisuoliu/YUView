@@ -121,7 +121,7 @@ struct EnumMapper : public std::array<std::pair<ValueType, std::string_view>, N>
 
   constexpr std::array<ValueType, N> getValues() const
   {
-    std::array<ValueType, N> values;
+    std::array<ValueType, N> values{};
     for (std::size_t i = 0; i < N; ++i)
       values[i] = this->at(i).first;
     return values;
@@ -129,7 +129,7 @@ struct EnumMapper : public std::array<std::pair<ValueType, std::string_view>, N>
 
   constexpr std::array<std::string_view, N> getNames() const
   {
-    std::array<std::string_view, N> names;
+    std::array<std::string_view, N> names{};
     for (std::size_t i = 0; i < N; ++i)
       names[i] = this->at(i).second;
     return names;

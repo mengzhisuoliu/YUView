@@ -34,6 +34,8 @@
 
 #include <common/EnumMapper.h>
 
+using namespace std::string_view_literals;
+
 namespace
 {
 
@@ -115,9 +117,9 @@ TEST(EnumMapperTest, testIndexOf)
 
 TEST(EnumMapperTest, testAt)
 {
-  EXPECT_EQ(TestEnumMapper.at(0), std::make_pair(TestEnum::ValueOne, "ValueOne"));
-  EXPECT_EQ(TestEnumMapper.at(1), std::make_pair(TestEnum::ValueTwo, "ValueTwo"));
-  EXPECT_EQ(TestEnumMapper.at(2), std::make_pair(TestEnum::ValueThree, "ValueThree"));
+  EXPECT_EQ(TestEnumMapper.at(0), std::make_pair(TestEnum::ValueOne, "ValueOne"sv));
+  EXPECT_EQ(TestEnumMapper.at(1), std::make_pair(TestEnum::ValueTwo, "ValueTwo"sv));
+  EXPECT_EQ(TestEnumMapper.at(2), std::make_pair(TestEnum::ValueThree, "ValueThree"sv));
 
   EXPECT_THROW(TestEnumMapper.at(3), std::out_of_range);
   EXPECT_THROW(TestEnumMapper.at(4), std::out_of_range);
