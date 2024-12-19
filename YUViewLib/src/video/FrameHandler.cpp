@@ -38,6 +38,8 @@
 #include <decoder/decoderTarga.h>
 #include <playlistitem/playlistItem.h>
 
+using namespace std::string_view_literals;
+
 namespace video
 {
 

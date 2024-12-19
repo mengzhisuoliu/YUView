@@ -51,8 +51,8 @@ enum class Endianness
   Little
 };
 
-constexpr auto EndianessMapper = EnumMapper<Endianness, 2>(
-    std::make_pair(Endianness::Little, "Little"sv), std::make_pair(Endianness::Big, "Big"sv));
+constexpr EnumMapper<Endianness, 2> EndianessMapper = {std::make_pair(Endianness::Little, "Little"),
+                                                       std::make_pair(Endianness::Big, "Big")};
 
 enum class DataLayout
 {
@@ -60,8 +60,8 @@ enum class DataLayout
   Packed
 };
 
-constexpr auto DataLayoutMapper = EnumMapper<DataLayout, 2>(
-    std::make_pair(DataLayout::Packed, "Packed"sv), std::make_pair(DataLayout::Planar, "Planar"sv));
+constexpr EnumMapper<DataLayout, 2> DataLayoutMapper = {
+    std::make_pair(DataLayout::Packed, "Packed"), std::make_pair(DataLayout::Planar, "Planar")};
 
 } // namespace video
 

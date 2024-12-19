@@ -55,10 +55,10 @@
 namespace
 {
 
-constexpr EnumMapper<OverlayLayoutMode, 3>
-    OverlayLayoutModeMapper(std::make_pair(OverlayLayoutMode::Overlay, "Overlay"sv),
-                            std::make_pair(OverlayLayoutMode::Arange, "Average"sv),
-                            std::make_pair(OverlayLayoutMode::Custom, "Custom"sv));
+constexpr EnumMapper<OverlayLayoutMode, 3> OverlayLayoutModeMapper = {
+    std::make_pair(OverlayLayoutMode::Overlay, "Overlay"),
+    std::make_pair(OverlayLayoutMode::Arange, "Average"),
+    std::make_pair(OverlayLayoutMode::Custom, "Custom")};
 
 std::string to_string(const QSize &size)
 {

@@ -203,10 +203,11 @@ void StatisticsStyleControl::on_blockDataTab_currentChanged(int index)
 
 void StatisticsStyleControl::on_comboBoxPredefined_currentIndexChanged(int index)
 {
-  if (!this->currentItem || this->currentItem->colorMapper.mappingType != MappingType::Predefined)
+  if (!this->currentItem || this->currentItem->colorMapper.mappingType != MappingType::Predefined ||
+      index < 0)
     return;
 
-  if (auto newType = stats::color::PredefinedTypeMapper.at(size_t(index)))
+  if (auto newType = stats::color::PredefinedTypeMapper.getValueAt(static_cast<std::size_t>(index)))
   {
     this->currentItem->colorMapper.predefinedType = *newType;
     this->ui.frameDataColor->setColorMapper(this->currentItem->colorMapper);

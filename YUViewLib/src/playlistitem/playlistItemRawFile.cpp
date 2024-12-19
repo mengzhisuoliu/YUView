@@ -49,6 +49,8 @@
 #define DEBUG_RAWFILE(f) ((void)0)
 #endif
 
+using namespace std::string_view_literals;
+
 namespace
 {
 

@@ -72,10 +72,10 @@ videoHandlerRGBCustomFormatDialog::videoHandlerRGBCustomFormatDialog(
 
 PixelFormatRGB videoHandlerRGBCustomFormatDialog::getSelectedRGBFormat() const
 {
-  auto channelOrderIndex = this->ui.rgbOrderComboBox->currentIndex();
+  const auto channelOrderIndex = this->ui.rgbOrderComboBox->currentIndex();
   if (channelOrderIndex < 0)
     return {};
-  auto channelOrder = ChannelOrderMapper.at(unsigned(channelOrderIndex));
+  auto channelOrder = ChannelOrderMapper.getValueAt(static_cast<std::size_t>(channelOrderIndex));
   if (!channelOrder)
     return {};
 

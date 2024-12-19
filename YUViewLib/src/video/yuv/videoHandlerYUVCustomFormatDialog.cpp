@@ -163,51 +163,46 @@ void videoHandlerYUVCustomFormatDialog::on_groupBoxPlanar_toggled(bool checked)
 
 PixelFormatYUV videoHandlerYUVCustomFormatDialog::getSelectedYUVFormat() const
 {
-  // Subsampling
-  auto idx = this->ui.comboBoxChromaSubsampling->currentIndex();
-  if (idx < 0)
+  const auto subsamplingIndex = this->ui.comboBoxChromaSubsampling->currentIndex();
+  if (subsamplingIndex < 0)
     return {};
-  auto subsampling = SubsamplingMapper.at(unsigned(idx));
+  const auto subsampling = SubsamplingMapper.getValueAt(static_cast<std::size_t>(subsamplingIndex));
   if (!subsampling)
     return {};
 
-  // Bit depth
-  idx = this->ui.comboBoxBitDepth->currentIndex();
-  if (idx < 0 || idx >= int(BitDepthList.size()))
+  const auto bitDepthIndex = this->ui.comboBoxBitDepth->currentIndex();
+  if (bitDepthIndex < 0 || bitDepthIndex >= int(BitDepthList.size()))
     return {};
-  auto bitsPerSample = BitDepthList.at(unsigned(idx));
+  const auto bitsPerSample = BitDepthList.at(unsigned(bitDepthIndex));
 
-  // Endianness
-  auto bigEndian = (this->ui.comboBoxEndianness->currentIndex() == 0);
+  const auto bigEndian    = (this->ui.comboBoxEndianness->currentIndex() == 0);
+  const auto chromaOffset = Offset({this->ui.comboBoxChromaOffsetX->currentIndex(),
+                                    this->ui.comboBoxChromaOffsetY->currentIndex()});
 
-  // Set the chroma offset
-  auto chromaOffset = Offset({this->ui.comboBoxChromaOffsetX->currentIndex(),
-                              this->ui.comboBoxChromaOffsetY->currentIndex()});
-
-  auto isPlanar = (this->ui.groupBoxPlanar->isChecked());
+  const auto isPlanar = (this->ui.groupBoxPlanar->isChecked());
   if (isPlanar)
   {
-    idx = this->ui.comboBoxPlaneOrder->currentIndex();
-    if (idx < 0)
+    const auto planeOrderIndex = this->ui.comboBoxPlaneOrder->currentIndex();
+    if (planeOrderIndex < 0)
       return {};
-    auto planeOrder = PlaneOrderMapper.at(unsigned(idx));
+    const auto planeOrder = PlaneOrderMapper.getValueAt(static_cast<std::size_t>(planeOrderIndex));
     if (!planeOrder)
       return {};
 
-    auto uvInterleaved = this->ui.checkBoxUVInterleaved->isChecked();
+    const auto uvInterleaved = this->ui.checkBoxUVInterleaved->isChecked();
 
     return PixelFormatYUV(
         *subsampling, bitsPerSample, *planeOrder, bigEndian, chromaOffset, uvInterleaved);
   }
   else
   {
-    auto supportedPackingFormats = getSupportedPackingFormats(*subsampling);
-    idx                          = this->ui.comboBoxPackingOrder->currentIndex();
-    if (idx < 0 || idx >= int(supportedPackingFormats.size()))
+    const auto supportedPackingFormats = getSupportedPackingFormats(*subsampling);
+    const auto packingOrderIndex       = this->ui.comboBoxPackingOrder->currentIndex();
+    if (packingOrderIndex < 0 || packingOrderIndex >= int(supportedPackingFormats.size()))
       return {};
 
-    auto packingOrder = supportedPackingFormats.at(idx);
-    auto bytePacking  = (this->ui.checkBoxBytePacking->isChecked());
+    const auto packingOrder = supportedPackingFormats.at(packingOrderIndex);
+    const auto bytePacking  = (this->ui.checkBoxBytePacking->isChecked());
 
     return PixelFormatYUV(
         *subsampling, bitsPerSample, packingOrder, bytePacking, bigEndian, chromaOffset);
@@ -217,7 +212,7 @@ PixelFormatYUV videoHandlerYUVCustomFormatDialog::getSelectedYUVFormat() const
 void videoHandlerYUVCustomFormatDialog::on_comboBoxBitDepth_currentIndexChanged(int idx)
 {
   // Endianness only makes sense when the bit depth is > 8bit.
-  bool bitDepth8 = (idx == 0);
+  const bool bitDepth8 = (idx == 0);
   this->ui.comboBoxEndianness->setEnabled(!bitDepth8);
 }
 

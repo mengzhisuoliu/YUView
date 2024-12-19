@@ -175,8 +175,8 @@ void videoHandlerResample::setCutAndSample(indexRange startEnd, int sampling)
 }
 
 void videoHandlerResample::guessAndSetPixelFormat(
-    const filesource::frameFormatGuess::GuessedFrameFormat &frameFormat,
-    const filesource::frameFormatGuess::FileInfoForGuess   &fileInfo)
+    const filesource::frameFormatGuess::GuessedFrameFormat &,
+    const filesource::frameFormatGuess::FileInfoForGuess &)
 {
   assert(false);
 }

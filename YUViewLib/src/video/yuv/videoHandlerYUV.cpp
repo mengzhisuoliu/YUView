@@ -51,6 +51,8 @@
 #include <video/yuv/PixelFormatYUVGuess.h>
 #include <video/yuv/videoHandlerYUVCustomFormatDialog.h>
 
+using namespace std::string_view_literals;
+
 namespace video::yuv
 {
 
@@ -2661,11 +2663,11 @@ void videoHandlerYUV::slotYUVControlChanged()
       sender == ui.chromaInvertCheckBox)
   {
     this->conversionSettings.chromaInterpolation =
-        *ChromaInterpolationMapper.at(ui.chromaInterpolationComboBox->currentIndex());
+        *ChromaInterpolationMapper.getValueAt(ui.chromaInterpolationComboBox->currentIndex());
     this->conversionSettings.componentDisplayMode =
-        *ComponentDisplayModeMapper.at(ui.colorComponentsComboBox->currentIndex());
+        *ComponentDisplayModeMapper.getValueAt(ui.colorComponentsComboBox->currentIndex());
     this->conversionSettings.colorConversion =
-        *ColorConversionMapper.at(ui.colorConversionComboBox->currentIndex());
+        *ColorConversionMapper.getValueAt(ui.colorConversionComboBox->currentIndex());
 
     this->conversionSettings.mathParameters[Component::Luma].scale  = ui.lumaScaleSpinBox->value();
     this->conversionSettings.mathParameters[Component::Luma].offset = ui.lumaOffsetSpinBox->value();

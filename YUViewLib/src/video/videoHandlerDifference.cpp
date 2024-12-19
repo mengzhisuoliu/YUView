@@ -39,6 +39,8 @@
 #include <common/Functions.h>
 #include <video/yuv/videoHandlerYUV.h>
 
+using namespace std::string_view_literals;
+
 namespace video
 {
 
@@ -185,8 +187,8 @@ QStringPairList videoHandlerDifference::getPixelValues(const QPoint &pixelPos,
 }
 
 void videoHandlerDifference::guessAndSetPixelFormat(
-    const filesource::frameFormatGuess::GuessedFrameFormat &frameFormat,
-    const filesource::frameFormatGuess::FileInfoForGuess   &fileInfo)
+    const filesource::frameFormatGuess::GuessedFrameFormat &,
+    const filesource::frameFormatGuess::FileInfoForGuess &)
 {
   assert(false);
 }

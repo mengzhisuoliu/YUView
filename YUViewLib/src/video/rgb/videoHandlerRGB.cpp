@@ -50,21 +50,21 @@ namespace video::rgb
 namespace
 {
 
-constexpr EnumMapper<ComponentDisplayMode, 6>
-    ComponentShowMapper(std::make_pair(ComponentDisplayMode::RGBA, "RGBA"sv),
-                        std::make_pair(ComponentDisplayMode::RGB, "RGB"sv),
-                        std::make_pair(ComponentDisplayMode::R, "R"sv),
-                        std::make_pair(ComponentDisplayMode::G, "G"sv),
-                        std::make_pair(ComponentDisplayMode::B, "B"sv),
-                        std::make_pair(ComponentDisplayMode::A, "A"sv));
+constexpr EnumMapper<ComponentDisplayMode, 6> ComponentShowMapper = {
+    std::make_pair(ComponentDisplayMode::RGBA, "RGBA"),
+    std::make_pair(ComponentDisplayMode::RGB, "RGB"),
+    std::make_pair(ComponentDisplayMode::R, "R"),
+    std::make_pair(ComponentDisplayMode::G, "G"),
+    std::make_pair(ComponentDisplayMode::B, "B"),
+    std::make_pair(ComponentDisplayMode::A, "A")};
 
-constexpr EnumMapper<ComponentDisplayMode, 6>
-    ComponentShowMapperToDisplayText(std::make_pair(ComponentDisplayMode::RGBA, "RGBA"sv),
-                                     std::make_pair(ComponentDisplayMode::RGB, "RGB"sv),
-                                     std::make_pair(ComponentDisplayMode::R, "Red Only"sv),
-                                     std::make_pair(ComponentDisplayMode::G, "Green Only"sv),
-                                     std::make_pair(ComponentDisplayMode::B, "Blue Only"sv),
-                                     std::make_pair(ComponentDisplayMode::A, "Alpha Only"sv));
+constexpr EnumMapper<ComponentDisplayMode, 6> ComponentShowMapperToDisplayText = {
+    std::make_pair(ComponentDisplayMode::RGBA, "RGBA"),
+    std::make_pair(ComponentDisplayMode::RGB, "RGB"),
+    std::make_pair(ComponentDisplayMode::R, "Red Only"),
+    std::make_pair(ComponentDisplayMode::G, "Green Only"),
+    std::make_pair(ComponentDisplayMode::B, "Blue Only"),
+    std::make_pair(ComponentDisplayMode::A, "Alpha Only")};
 
 void addConversionInformationToInfoList(QList<InfoItem> &differenceInfoList,
                                         const int        width,
@@ -325,7 +325,7 @@ void videoHandlerRGB::slotDisplayOptionsChanged()
   {
     const auto index = ui.colorComponentsComboBox->currentIndex();
     if (index >= 0)
-      if (const auto mode = ComponentShowMapper.at(static_cast<std::size_t>(index)))
+      if (const auto mode = ComponentShowMapper.getValueAt(static_cast<std::size_t>(index)))
         this->componentDisplayMode = *mode;
   }
 

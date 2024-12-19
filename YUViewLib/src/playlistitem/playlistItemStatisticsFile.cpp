@@ -57,6 +57,8 @@
 // idea anyways)
 #define STAT_PARSING_BUFFER_SIZE 1048576
 
+using namespace std::string_view_literals;
+
 playlistItemStatisticsFile::playlistItemStatisticsFile(const QString &itemNameOrFileName,
                                                        OpenMode       openMode)
     : playlistItem(itemNameOrFileName, Type::Indexed), openMode(openMode)

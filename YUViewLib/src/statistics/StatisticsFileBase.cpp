@@ -32,6 +32,8 @@
 
 #include "StatisticsFileBase.h"
 
+using namespace std::string_view_literals;
+
 namespace stats
 {
 
